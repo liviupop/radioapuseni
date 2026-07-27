@@ -132,6 +132,7 @@ a:hover { color: var(--color-accent); }
 .stage {
   position: fixed; inset: 0;
   height: 100dvh;
+  touch-action: none;
 }
 #ridge { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 .scrim-top {
@@ -146,7 +147,7 @@ a:hover { color: var(--color-accent); }
   position: absolute; z-index: 3;
   top: calc(var(--pad) + var(--safe-t));
   left: var(--pad);
-  right: calc(var(--pad) + 3.5rem);
+  right: calc(var(--pad) + 7rem);
   pointer-events: none;
 }
 .status .label {
@@ -196,6 +197,18 @@ body.is-live .status .dot { opacity: 1; }
   top: calc(var(--pad) + var(--safe-t)); right: var(--pad);
   display: flex; gap: var(--space-2);
 }
+.zoom-controls {
+  display: flex;
+  padding: 2px;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: 0 4px 16px rgba(20,30,24,.10);
+}
+.zoom-controls .icon-btn { width: 38px; height: 38px; }
+.zoom-controls .icon-btn + .icon-btn { border-left: 1px solid var(--color-line); }
+.zoom-controls .icon-btn:disabled { opacity: .32; cursor: default; }
+.zoom-controls .icon-btn:disabled:active { transform: none; }
 .icon-btn {
   width: 44px; height: 44px;
   border: none; border-radius: var(--radius-lg);
@@ -510,10 +523,19 @@ li.playing.playing-now .ep-play .icon-pause { display: block; }
   </div>
 
   <div class="corner-actions">
+    <div class="zoom-controls" role="group" aria-label="Zoom peisaj">
+      <button class="icon-btn" id="zoom-out" type="button" aria-label="Depărtează peisajul" aria-keyshortcuts="-">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 12h12"/></svg>
+      </button>
+      <button class="icon-btn" id="zoom-in" type="button" aria-label="Apropie peisajul" aria-keyshortcuts="+">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 6v12M6 12h12"/></svg>
+      </button>
+    </div>
     <button class="icon-btn" id="install-btn" type="button" aria-label="Instalează aplicația">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v13m0 0-4-4m4 4 4-4M5 19h14"/></svg>
     </button>
   </div>
+  <p class="sr-only" id="zoom-status" aria-live="polite">Zoom peisaj 100%</p>
 
   <button class="disc" id="play" type="button" aria-pressed="false" aria-label="Pornește Radio Apuseni">
     <svg class="icon-play" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15l13-7.5z"/></svg>
@@ -938,9 +960,11 @@ let hiker, hikerLeftLeg, hikerRightLeg, hikerLeftArm, hikerRightArm;
 let hikerLight, hikerMaterials, trail, hemi, sun, fill, sceneFog;
 let progress = 0, nightNow = null, lastFrame = 0;
 let trailAlpha = null;
+let zoomTarget = 1, zoomNow = 1, pinchDistance = 0;
 const TRAIL_RINGS = 700;   /* inele de-a lungul potecii */
 const TRAIL_TAIL = 95;     /* cât rămâne vizibil în urmă */
 const TRAIL_SIDES = 4;
+const ZOOM_MIN = .46, ZOOM_MAX = 1.35;
 const SPEED = 4.2;
 const _p = new THREE.Vector3(), _ahead = new THREE.Vector3(), _tan = new THREE.Vector3();
 const _right = new THREE.Vector3(), _c = new THREE.Color();
@@ -1146,10 +1170,14 @@ function advance(dt, now) {
 
   /* camera: în urmă, sus, puțin lateral. Unghi oblic, ca relieful
      să se vadă în adâncime, până la orizont. */
+  zoomNow += (zoomTarget - zoomNow) * (reducedMotion ? 1 : 1 - Math.exp(-dt * 4.5));
   camGoal.copy(_p)
-    .addScaledVector(_tan, -205)
-    .addScaledVector(_right, -48);
-  camGoal.y = Math.max(_p.y + 155, heightAt(camGoal.x, camGoal.z) + 95);
+    .addScaledVector(_tan, -205 * zoomNow)
+    .addScaledVector(_right, -48 * zoomNow);
+  camGoal.y = Math.max(
+    _p.y + 155 * zoomNow,
+    heightAt(camGoal.x, camGoal.z) + 95 * zoomNow
+  );
   camera.position.lerp(camGoal, 1 - Math.exp(-dt * 1.15));
 
   /* privirea stă pe drumeț; netezimea vine din deplasarea camerei */
@@ -1242,6 +1270,7 @@ function frame(now) {
 
 function fallback2D() {
   renderer = null;
+  document.querySelector(".zoom-controls")?.setAttribute("hidden", "");
   const ctx2 = canvas.getContext("2d");
   if (!ctx2) return;
   function draw() {
@@ -1266,6 +1295,78 @@ function fallback2D() {
 }
 
 initScene();
+
+/* ============================================================
+   ZOOM PEISAJ
+   Camera rămâne legată de drumeț; se schimbă doar distanța.
+   Mouse/trackpad, pinch și butoanele folosesc aceeași țintă,
+   iar interpolarea din advance() păstrează mișcarea fluidă.
+   ============================================================ */
+const stage = document.querySelector(".stage");
+const zoomInBtn = document.getElementById("zoom-in");
+const zoomOutBtn = document.getElementById("zoom-out");
+const zoomStatus = document.getElementById("zoom-status");
+
+function setLandscapeZoom(next, announce) {
+  zoomTarget = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, next));
+  zoomInBtn.disabled = zoomTarget <= ZOOM_MIN + .001;
+  zoomOutBtn.disabled = zoomTarget >= ZOOM_MAX - .001;
+  if (announce) zoomStatus.textContent = "Zoom peisaj " + Math.round(100 / zoomTarget) + "%";
+  if (reducedMotion && renderer) {
+    advance(0, 0);
+    renderer.render(scene, camera);
+  }
+}
+
+zoomInBtn.addEventListener("click", () => setLandscapeZoom(zoomTarget * .78, true));
+zoomOutBtn.addEventListener("click", () => setLandscapeZoom(zoomTarget / .78, true));
+
+stage.addEventListener("wheel", (event) => {
+  if (!renderer || openSheet) return;
+  event.preventDefault();
+  setLandscapeZoom(zoomTarget * Math.exp(event.deltaY * .0012), false);
+}, { passive: false });
+
+stage.addEventListener("touchstart", (event) => {
+  if (event.touches.length === 2) {
+    pinchDistance = Math.hypot(
+      event.touches[0].clientX - event.touches[1].clientX,
+      event.touches[0].clientY - event.touches[1].clientY
+    );
+  }
+}, { passive: true });
+
+stage.addEventListener("touchmove", (event) => {
+  if (!renderer || openSheet || event.touches.length !== 2 || !pinchDistance) return;
+  const distance = Math.hypot(
+    event.touches[0].clientX - event.touches[1].clientX,
+    event.touches[0].clientY - event.touches[1].clientY
+  );
+  event.preventDefault();
+  setLandscapeZoom(zoomTarget * pinchDistance / Math.max(1, distance), false);
+  pinchDistance = distance;
+}, { passive: false });
+
+stage.addEventListener("touchend", (event) => {
+  if (event.touches.length < 2) pinchDistance = 0;
+}, { passive: true });
+
+window.addEventListener("keydown", (event) => {
+  const typing = event.target instanceof Element
+    && event.target.matches("input, textarea, select, [contenteditable]");
+  if (openSheet || typing) return;
+  if (event.key === "+" || event.key === "=") {
+    event.preventDefault();
+    setLandscapeZoom(zoomTarget * .78, true);
+  } else if (event.key === "-" || event.key === "_") {
+    event.preventDefault();
+    setLandscapeZoom(zoomTarget / .78, true);
+  } else if (event.key === "0") {
+    event.preventDefault();
+    setLandscapeZoom(1, true);
+  }
+});
+setLandscapeZoom(1, false);
 
 
 
