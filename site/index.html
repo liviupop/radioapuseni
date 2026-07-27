@@ -116,6 +116,17 @@ body {
 a { color: var(--color-text); text-decoration-color: var(--color-accent); text-underline-offset: 3px; }
 a:hover { color: var(--color-accent); }
 :focus-visible { outline: 2px solid var(--color-focus); outline-offset: 3px; border-radius: var(--radius-sm); }
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
 
 /* ============ SCENA ============ */
 .stage {
@@ -339,17 +350,47 @@ body.is-ep.playing-now .disc .icon-pause { display: block; }
 .tl-caption strong { color: var(--color-text); font-weight: 600; }
 
 /* arhiva */
-.feeds { display: grid; grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr)); gap: var(--space-3); margin: 0; padding: 0; list-style: none; }
-.feed {
-  background: var(--color-surface); border: 1px solid var(--color-line);
-  border-radius: var(--radius-md); padding: var(--space-3);
-  transition: border-color var(--duration-fast);
+.feed-table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  overflow: hidden;
 }
-.feed:hover { border-color: var(--color-accent); }
-.feed h3 { margin: 0 0 var(--space-1); font-family: var(--font-display); font-weight: 500; font-size: var(--text-base); }
+.feed-table th {
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-sky-hi);
+  color: var(--color-muted);
+  font-size: var(--text-xs);
+  font-weight: 600;
+  letter-spacing: .1em;
+  text-align: left;
+  text-transform: uppercase;
+}
+.feed-table th:first-child { width: 28%; }
+.feed-table th:nth-child(2) { width: 47%; }
+.feed-table th:last-child { width: 25%; text-align: right; }
+.feed td {
+  min-height: 4.5rem;
+  padding: var(--space-3);
+  border-top: 1px solid var(--color-line);
+  transition: background var(--duration-fast);
+  vertical-align: middle;
+}
+.feed:hover td { background: var(--color-sky-hi); }
+.feed-name h3 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: var(--text-base);
+}
 .feed a { font-size: var(--text-sm); color: var(--color-muted); text-decoration: none; }
 .feed a:hover { color: var(--color-accent); }
 .feed a::after { content: " ↗"; }
+.feed-status { text-align: right; white-space: nowrap; }
 
 .episodes { margin: 0; padding: 0; list-style: none; }
 .episodes li {
@@ -379,8 +420,29 @@ li.playing.playing-now .ep-play .icon-pause { display: block; }
 .episodes .ep-date { font-size: var(--text-xs); color: var(--color-muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
 .arhiva-note { font-size: var(--text-sm); color: var(--color-muted); }
 .arhiva-note.hidden { display: none; }
-.feed .tagline { margin: 0 0 var(--space-2); color: var(--color-muted); font-size: var(--text-sm); line-height: var(--leading-sm); }
+.feed .tagline { margin: 0; color: var(--color-muted); font-size: var(--text-sm); line-height: var(--leading-sm); }
 .feed .coming { color: var(--color-muted); font-size: var(--text-xs); letter-spacing: .08em; text-transform: uppercase; }
+@media (max-width: 640px) {
+  .feed-table,
+  .feed-table tbody { display: block; }
+  .feed-table thead { display: none; }
+  .feed {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "name status"
+      "tagline tagline";
+    gap: var(--space-1) var(--space-3);
+    min-height: 4.5rem;
+    padding: var(--space-3);
+    border-top: 1px solid var(--color-line);
+  }
+  .feed:first-child { border-top: none; }
+  .feed td { display: block; min-height: 0; padding: 0; border: none; }
+  .feed-name { grid-area: name; }
+  .feed .tagline { grid-area: tagline; }
+  .feed-status { grid-area: status; align-self: start; }
+}
 .editorial-figure {
   margin: 0 0 var(--space-4);
   overflow: hidden;
@@ -514,7 +576,17 @@ li.playing.playing-now .ep-play .icon-pause { display: block; }
   </div>
   <div class="sheet-body">
     <p class="lede">Toate episoadele vor fi păstrate și vor putea fi ascultate oricând, aici sau în orice aplicație de podcast. Până la primele documentări proprii, puteți testa experiența cu trei peisaje sonore din domeniul public.</p>
-    <ul class="feeds" id="feeds"></ul>
+    <table class="feed-table">
+      <caption class="sr-only">Emisiuni și fluxuri podcast</caption>
+      <thead>
+        <tr>
+          <th scope="col">Emisiune</th>
+          <th scope="col">Descriere</th>
+          <th scope="col">Flux</th>
+        </tr>
+      </thead>
+      <tbody id="feeds"></tbody>
+    </table>
     <h3 class="subhead">Episoade recente</h3>
     <ul class="episodes" id="episodes"></ul>
     <p class="arhiva-note" id="arhiva-note">Arhiva se încarcă…</p>
@@ -1165,14 +1237,17 @@ const epsEl = document.getElementById("episodes");
 const noteEl = document.getElementById("arhiva-note");
 
 for (const f of CONFIG.feeds) {
-  const li = document.createElement("li");
-  li.className = "feed";
-  li.innerHTML = "<h3>" + escapeHtml(f.name) + "</h3>" +
-    "<p class=\"tagline\">" + escapeHtml(f.tagline) + "</p>" +
-    (f.url
-      ? "<a href=\"" + escapeHtml(f.url) + "\" rel=\"noopener\">Flux podcast</a>"
-      : "<span class=\"coming\">Flux în pregătire</span>");
-  feedsEl.appendChild(li);
+  const row = document.createElement("tr");
+  row.className = "feed";
+  row.innerHTML =
+    "<td class=\"feed-name\"><h3>" + escapeHtml(f.name) + "</h3></td>" +
+    "<td class=\"tagline\">" + escapeHtml(f.tagline) + "</td>" +
+    "<td class=\"feed-status\">" +
+      (f.url
+        ? "<a href=\"" + escapeHtml(f.url) + "\" rel=\"noopener\">Flux podcast</a>"
+        : "<span class=\"coming\">În pregătire</span>") +
+    "</td>";
+  feedsEl.appendChild(row);
 }
 
 function feedFetchUrl(feedUrl) {
