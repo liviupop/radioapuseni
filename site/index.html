@@ -53,9 +53,9 @@
   --color-accent-ink: #1c1206;
   --color-focus: #6e4a0c;
   --color-danger: #b3391f;
-  --ridge-far: rgba(29,43,35,.16);
-  --ridge-mid: rgba(29,43,35,.34);
-  --ridge-near: rgba(29,43,35,.88);
+  --ridge-far: rgba(54,58,56,.14);
+  --ridge-mid: rgba(54,58,56,.30);
+  --ridge-near: rgba(35,39,37,.86);
   --scrim-top: rgba(238,240,231,.72);
   --disc-glow: rgba(217,164,65,.40);
 
@@ -859,9 +859,10 @@ if (CONFIG.mode === "live") setInterval(refreshNowPlaying, 30000);
    MUNTELE
    Privire oblică de mare altitudine, ca hărțile 3D de relief:
    creste dese, văi ramificate, orizont care se pierde în ceață.
-   Randare de tip „clay": lumină rece de cer, cheie caldă,
+   Randare de tip „clay": o paletă monocromă și lumină rece,
    fără umbre proiectate (ele înnegreau relieful fin).
-   Un punct roșu urcă lent pe potecă, lăsând o urmă vizibilă,
+   Un drumeț low-poly cu rucsac urcă lent pe potecă,
+   lăsând în urmă un fir discret,
    ținut deliberat în stânga-jos, departe de butonul de emisie.
    ============================================================ */
 const canvas = document.getElementById("ridge");
@@ -933,11 +934,13 @@ const WAY = [
 let walk = null, walkLen = 1;
 
 let renderer, scene, camera, terrainGeo, terrainMesh;
-let dot, dotGlow, dotLight, trail, hemi, sun, fill, sceneFog;
+let hiker, hikerLeftLeg, hikerRightLeg, hikerLeftArm, hikerRightArm;
+let hikerLight, hikerMaterials, trail, hemi, sun, fill, sceneFog;
 let progress = 0, nightNow = null, lastFrame = 0;
 let trailAlpha = null;
 const TRAIL_RINGS = 700;   /* inele de-a lungul potecii */
 const TRAIL_TAIL = 95;     /* cât rămâne vizibil în urmă */
+const TRAIL_SIDES = 4;
 const SPEED = 4.2;
 const _p = new THREE.Vector3(), _ahead = new THREE.Vector3(), _tan = new THREE.Vector3();
 const _right = new THREE.Vector3(), _c = new THREE.Color();
@@ -951,7 +954,7 @@ function buildWalk() {
   const N = 700, pts = [];
   for (let i = 0; i < N; i++) {
     const p = raw.getPointAt(i / N);
-    p.y = heightAt(p.x, p.z) + 2.2;
+    p.y = heightAt(p.x, p.z) + .3;
     pts.push(p);
   }
   walk = new THREE.CatmullRomCurve3(pts, true, "catmullrom", .2);
@@ -975,14 +978,14 @@ function buildTerrain() {
 /* culoarea: cinci trepte de altitudine, ca la hărțile desenate.
    Benzile nete, nu degradeuri, dau registrul de ilustrație. */
 const BANDS = {
-  day:   ["#5f7059", "#7c8c6d", "#9aa886", "#bcc5aa", "#e4e8d8"],
-  night: ["#0a1215", "#14212a", "#22343f", "#38505d", "#7d94a0"]
+  day:   ["#555a57", "#707572", "#8b908c", "#a9ada8", "#d6d8d3"],
+  night: ["#080b0c", "#111617", "#1b2223", "#2a3334", "#536061"]
 };
 function terrainRetint(night) {
   if (!renderer || night === nightNow) return;
   nightNow = night;
   const band = (night ? BANDS.night : BANDS.day).map(h => new THREE.Color(h));
-  const shade = new THREE.Color(night ? "#050b0e" : "#4a5a4c");
+  const shade = new THREE.Color(night ? "#030505" : "#414643");
   const pos = terrainGeo.attributes.position;
   const nor = terrainGeo.attributes.normal;
   const col = terrainGeo.attributes.color;
@@ -995,49 +998,103 @@ function terrainRetint(night) {
     col.setXYZ(i, _c.r, _c.g, _c.b);
   }
   col.needsUpdate = true;
-  sceneFog.color.set(night ? "#04080a" : "#dfe3d4");
-  hemi.color.set(night ? "#25333c" : "#e8eef2");
-  hemi.groundColor.set(night ? "#010304" : "#66735e");
+  sceneFog.color.set(night ? "#040708" : "#d9dbd6");
+  hemi.color.set(night ? "#293132" : "#eef0ec");
+  hemi.groundColor.set(night ? "#010304" : "#626762");
   hemi.intensity = night ? .7 : .82;
-  sun.color.set(night ? "#cfe0f2" : "#fff8ea");
+  sun.color.set(night ? "#d9dedd" : "#f4f4ef");
   sun.intensity = night ? .6 : .9;
-  fill.color.set(night ? "#40566a" : "#c6d6e0");
+  fill.color.set(night ? "#4b5758" : "#bfc5c4");
   fill.intensity = night ? .25 : .35;
+
+  if (hikerMaterials) {
+    hikerMaterials.cloth.color.set(night ? "#d3d4cf" : "#303432");
+    hikerMaterials.pack.color.set(night ? "#858c88" : "#666a66");
+    hikerMaterials.skin.color.set(night ? "#e3e1da" : "#bbb9b2");
+    hikerMaterials.boot.color.set(night ? "#777d79" : "#202321");
+  }
+  if (trailAlpha) {
+    const trailTone = new THREE.Color(night ? "#909795" : "#606460");
+    for (let i = 0; i < trailAlpha.length; i += 4) {
+      trailAlpha[i] = trailTone.r;
+      trailAlpha[i + 1] = trailTone.g;
+      trailAlpha[i + 2] = trailTone.b;
+    }
+    trail.geometry.attributes.color.needsUpdate = true;
+  }
 }
 
 
-function glowTexture() {
-  const c = document.createElement("canvas");
-  c.width = c.height = 128;
-  const g = c.getContext("2d");
-  const grd = g.createRadialGradient(64, 64, 0, 64, 64, 64);
-  grd.addColorStop(0, "rgba(255,255,255,1)");
-  grd.addColorStop(.3, "rgba(255,255,255,.4)");
-  grd.addColorStop(1, "rgba(255,255,255,0)");
-  g.fillStyle = grd; g.fillRect(0, 0, 128, 128);
-  return new THREE.CanvasTexture(c);
-}
+function buildHiker() {
+  hikerMaterials = {
+    cloth: new THREE.MeshStandardMaterial({ color: "#303432", roughness: 1, flatShading: true }),
+    pack: new THREE.MeshStandardMaterial({ color: "#666a66", roughness: 1, flatShading: true }),
+    skin: new THREE.MeshStandardMaterial({ color: "#bbb9b2", roughness: 1, flatShading: true }),
+    boot: new THREE.MeshStandardMaterial({ color: "#202321", roughness: 1, flatShading: true })
+  };
 
-function buildDot() {
-  const red = "#e8321c";
-  dot = new THREE.Mesh(new THREE.SphereGeometry(2.4, 18, 14),
-    new THREE.MeshBasicMaterial({ color: red }));
-  scene.add(dot);
-  dotGlow = new THREE.Sprite(new THREE.SpriteMaterial({
-    map: glowTexture(), color: red, transparent: true, opacity: .75, depthWrite: false
-  }));
-  dotGlow.scale.setScalar(22);
-  scene.add(dotGlow);
-  dotLight = new THREE.PointLight(red, 2.2, 110, 2);
-  scene.add(dotLight);
+  hiker = new THREE.Group();
+
+  const torso = new THREE.Mesh(new THREE.BoxGeometry(1.15, 1.65, .64), hikerMaterials.cloth);
+  torso.position.y = 2.55;
+  hiker.add(torso);
+
+  const head = new THREE.Mesh(new THREE.SphereGeometry(.39, 7, 5), hikerMaterials.skin);
+  head.position.set(0, 3.77, .05);
+  hiker.add(head);
+
+  const cap = new THREE.Mesh(new THREE.CylinderGeometry(.38, .43, .22, 7), hikerMaterials.cloth);
+  cap.position.set(0, 4.08, .03);
+  hiker.add(cap);
+  const brim = new THREE.Mesh(new THREE.BoxGeometry(.62, .08, .36), hikerMaterials.cloth);
+  brim.position.set(0, 3.99, .29);
+  hiker.add(brim);
+
+  const backpack = new THREE.Mesh(new THREE.BoxGeometry(1.03, 1.38, .58), hikerMaterials.pack);
+  backpack.position.set(0, 2.58, -.58);
+  backpack.rotation.x = -.08;
+  hiker.add(backpack);
+  const roll = new THREE.Mesh(new THREE.CylinderGeometry(.25, .25, .92, 7), hikerMaterials.pack);
+  roll.rotation.z = Math.PI / 2;
+  roll.position.set(0, 3.27, -.62);
+  hiker.add(roll);
+
+  function limb(x, y, material, length, width) {
+    const pivot = new THREE.Group();
+    pivot.position.set(x, y, 0);
+    const part = new THREE.Mesh(new THREE.BoxGeometry(width, length, width), material);
+    part.position.y = -length / 2;
+    pivot.add(part);
+    hiker.add(pivot);
+    return pivot;
+  }
+
+  hikerLeftLeg = limb(-.31, 1.75, hikerMaterials.cloth, 1.38, .34);
+  hikerRightLeg = limb(.31, 1.75, hikerMaterials.cloth, 1.38, .34);
+  const leftBoot = new THREE.Mesh(new THREE.BoxGeometry(.4, .28, .66), hikerMaterials.boot);
+  leftBoot.position.set(0, -1.34, .15);
+  hikerLeftLeg.add(leftBoot);
+  const rightBoot = leftBoot.clone();
+  hikerRightLeg.add(rightBoot);
+
+  hikerLeftArm = limb(-.72, 3.14, hikerMaterials.cloth, 1.22, .27);
+  hikerRightArm = limb(.72, 3.14, hikerMaterials.cloth, 1.22, .27);
+
+  hiker.scale.setScalar(.78);
+  scene.add(hiker);
+
+  /* O lumină foarte discretă păstrează silueta lizibilă fără
+     să recreeze punctul luminos din versiunea anterioară. */
+  hikerLight = new THREE.PointLight("#d7d9d4", .24, 25, 2);
+  scene.add(hikerLight);
 
   /* urma: un tub subțire, construit o dată. Nu îl dezvăluim prin
      drawRange, ci prin transparență per vârf: capul e plin, coada
      se stinge lin până la zero, ca un fir de fum în urma pașilor. */
-  const tube = new THREE.TubeGeometry(walk, TRAIL_RINGS, .55, 6, true);
-  const rings = TRAIL_RINGS + 1, perRing = 7;
+  const tube = new THREE.TubeGeometry(walk, TRAIL_RINGS, .16, TRAIL_SIDES, true);
+  const rings = TRAIL_RINGS + 1, perRing = TRAIL_SIDES + 1;
   trailAlpha = new Float32Array(rings * perRing * 4);
-  const rc = new THREE.Color(red);
+  const rc = new THREE.Color("#606460");
   for (let i = 0; i < rings * perRing; i++) {
     trailAlpha[i * 4] = rc.r; trailAlpha[i * 4 + 1] = rc.g;
     trailAlpha[i * 4 + 2] = rc.b; trailAlpha[i * 4 + 3] = 0;
@@ -1049,36 +1106,43 @@ function buildDot() {
   scene.add(trail);
 }
 
-/* unde vrem punctul pe ecran: stânga-jos, ferit de butonul de emisie */
+/* unde vrem drumețul pe ecran: stânga-jos, ferit de butonul de emisie */
 const FRAME = { nx: -0.44, ny: -0.42 };
 function advance(dt, now) {
   progress = (progress + (SPEED * dt) / walkLen) % 1;
   walk.getPointAt(progress, _p);
-  _p.y = heightAt(_p.x, _p.z) + 2.6;
-
-  const breathe = .5 + .5 * Math.sin(now * .0035);
-  dot.position.copy(_p);
-  dot.scale.setScalar(1 + breathe * .14);
-  dotGlow.position.copy(_p);
-  dotLight.position.set(_p.x, _p.y + 8, _p.z);
-  /* coada care se stinge */
-  if (trailAlpha) {
-  const head = progress * TRAIL_RINGS;
-  for (let i = 0; i <= TRAIL_RINGS; i++) {
-    let back = head - i;
-    if (back < 0) back += TRAIL_RINGS;
-    let a = back <= TRAIL_TAIL ? 1 - back / TRAIL_TAIL : 0;
-    a = a * a * .9;                       /* stingere lină, nu liniară */
-    const base = i * 7 * 4;
-    for (let j = 0; j < 7; j++) trailAlpha[base + j * 4 + 3] = a;
-  }
-  trail.geometry.attributes.color.needsUpdate = true;
-  }
+  _p.y = heightAt(_p.x, _p.z) + .08;
 
   /* direcția de mers, orizontală */
   walk.getTangentAt(progress, _tan);
   _tan.y = 0; _tan.normalize();
   _right.crossVectors(_tan, UP).normalize();
+
+  const stride = Math.sin(now * .009);
+  hiker.position.copy(_p);
+  hiker.position.y += Math.abs(stride) * .09;
+  hiker.rotation.y = Math.atan2(_tan.x, _tan.z);
+  hiker.rotation.z = Math.sin(now * .0045) * .025;
+  hikerLeftLeg.rotation.x = stride * .62;
+  hikerRightLeg.rotation.x = -stride * .62;
+  hikerLeftArm.rotation.x = -stride * .42;
+  hikerRightArm.rotation.x = stride * .42;
+  hikerLight.position.set(_p.x, _p.y + 3.2, _p.z);
+
+  /* coada care se stinge */
+  if (trailAlpha) {
+    const head = progress * TRAIL_RINGS;
+    const perRing = TRAIL_SIDES + 1;
+    for (let i = 0; i <= TRAIL_RINGS; i++) {
+      let back = head - i;
+      if (back < 0) back += TRAIL_RINGS;
+      let a = back <= TRAIL_TAIL ? 1 - back / TRAIL_TAIL : 0;
+      a = a * a * .48;                    /* fir fin, cu stingere lină */
+      const base = i * perRing * 4;
+      for (let j = 0; j < perRing; j++) trailAlpha[base + j * 4 + 3] = a;
+    }
+    trail.geometry.attributes.color.needsUpdate = true;
+  }
 
   /* camera: în urmă, sus, puțin lateral. Unghi oblic, ca relieful
      să se vadă în adâncime, până la orizont. */
@@ -1088,12 +1152,12 @@ function advance(dt, now) {
   camGoal.y = Math.max(_p.y + 155, heightAt(camGoal.x, camGoal.z) + 95);
   camera.position.lerp(camGoal, 1 - Math.exp(-dt * 1.15));
 
-  /* privirea stă pe punct; netezimea vine din deplasarea camerei */
+  /* privirea stă pe drumeț; netezimea vine din deplasarea camerei */
   aimNow.copy(_p);
   camera.lookAt(aimNow);
 
   /* apoi camera se abate cu unghiuri calculate din câmpul vizual,
-     ca punctul să cadă exact în colțul dorit: astfel butonul de
+     ca drumețul să cadă exact în colțul dorit: astfel butonul de
      emisie rămâne mereu peste creste libere */
   const tanY = Math.tan(camera.fov * Math.PI / 360);
   const tanX = tanY * camera.aspect;
@@ -1112,8 +1176,7 @@ function audioPulse() {
     for (let i = 0; i < freq.length; i++) level += freq[i];
     level /= freq.length * 255;
   }
-  dotLight.intensity = 2.6 + level * 4;
-  dotGlow.scale.setScalar(22 + level * 14);
+  if (hikerLight) hikerLight.intensity = .24 + level * .7;
 }
 
 function initScene() {
@@ -1124,23 +1187,23 @@ function initScene() {
   renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 1.6));
 
   scene = new THREE.Scene();
-  sceneFog = new THREE.Fog("#dfe3d4", 380, 1250);
+  sceneFog = new THREE.Fog("#d9dbd6", 380, 1250);
   scene.fog = sceneFog;
   camera = new THREE.PerspectiveCamera(58, 1, 1, 2400);
 
-  hemi = new THREE.HemisphereLight("#eaf1f6", "#5c6a58", 1.0);
+  hemi = new THREE.HemisphereLight("#eef0ec", "#626762", 1.0);
   scene.add(hemi);
-  sun = new THREE.DirectionalLight("#fff6e6", 1.35);
+  sun = new THREE.DirectionalLight("#f4f4ef", 1.35);
   sun.position.set(260, 340, -150);
   scene.add(sun);
   scene.add(sun.target);
-  fill = new THREE.DirectionalLight("#cfe0ea", .5);   /* contra-lumină rece */
+  fill = new THREE.DirectionalLight("#bfc5c4", .5);   /* contra-lumină rece */
   fill.position.set(-220, 120, 240);
   scene.add(fill);
 
   buildWalk();
   buildTerrain();
-  buildDot();
+  buildHiker();
   terrainRetint(document.documentElement.dataset.mode === "night");
 
   walk.getPointAt(0, _p);
