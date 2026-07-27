@@ -954,18 +954,20 @@ const WAY = [
   [-370, -20], [-330, 210]
 ];
 const MEADOWS = [
+  { x: -332, z: 172, rx: 58, rz: 38 },
   { x: -205, z: 145, rx: 76, rz: 46 },
   { x: 28, z: 30, rx: 72, rz: 54 },
   { x: -205, z: -118, rx: 82, rz: 48 }
 ];
 const FOREST_ZONES = [
+  { x: -335, z: 165, r: 66, seed: 5 },
   { x: -292, z: 115, r: 92, seed: 11 },
   { x: -18, z: -40, r: 104, seed: 29 },
   { x: -285, z: -82, r: 88, seed: 47 },
   { x: -92, z: 172, r: 66, seed: 71 }
 ];
 const STREAM_CROSSINGS = [
-  { at: .045, reach: 125, width: 2.25 },
+  { at: .008, reach: 125, width: 2.25 },
   { at: .57, reach: 150, width: 1.7 }
 ];
 let walk = null, walkLen = 1;
@@ -1073,6 +1075,7 @@ function terrainRetint(night) {
   if (landscapeMaterials) {
     landscapeMaterials.trunk.color.set(night ? "#242824" : "#4d4438");
     landscapeMaterials.pine.color.set(night ? "#26352f" : "#44584b");
+    landscapeMaterials.grass.color.set(night ? "#425347" : "#68795e");
     landscapeMaterials.water.color.set(night ? "#6e8790" : "#718d96");
     landscapeMaterials.wood.color.set(night ? "#8c7963" : "#6f5034");
   }
@@ -1116,7 +1119,7 @@ function buildForests() {
     if (Math.abs(x) > T.size * .47 || Math.abs(z) > T.size * .47) continue;
     if (distanceToWalk(x, z) < 10 || terrainSlope(x, z) > 1.15) continue;
     const scale = .72 + hash2(i * 19 + 3, zone.seed * 43) * .72;
-    placements.push({ x, z, y: heightAt(x, z), scale, angle });
+    placements.push({ x, z, y: heightAt(x, z) + 1.65, scale, angle });
   }
 
   const trunkGeo = new THREE.CylinderGeometry(.34, .52, 2.4, 5);
@@ -1148,6 +1151,35 @@ function buildForests() {
   scene.add(trunks, pines);
 }
 
+function buildMeadowTufts() {
+  const targetCount = innerWidth < 820 ? 56 : 96;
+  const placements = [];
+  for (let i = 0; i < targetCount * 5 && placements.length < targetCount; i++) {
+    const meadow = MEADOWS[i % MEADOWS.length];
+    const angle = hash2(i * 41 + 13, i * 79 + 17) * Math.PI * 2;
+    const radius = Math.sqrt(hash2(i * 97 + 19, i * 53 + 23));
+    const x = meadow.x + Math.cos(angle) * radius * meadow.rx * .82;
+    const z = meadow.z + Math.sin(angle) * radius * meadow.rz * .82;
+    if (terrainSlope(x, z) > .72) continue;
+    const scale = .7 + hash2(i * 31 + 7, i * 67 + 29) * .8;
+    placements.push({ x, z, scale, angle });
+  }
+
+  const tuftGeo = new THREE.ConeGeometry(.24, 1.35, 4);
+  const tufts = new THREE.InstancedMesh(tuftGeo, landscapeMaterials.grass, placements.length);
+  const dummy = new THREE.Object3D();
+  placements.forEach((tuft, i) => {
+    dummy.position.set(tuft.x, heightAt(tuft.x, tuft.z) + 2.05, tuft.z);
+    dummy.rotation.set(0, tuft.angle, 0);
+    dummy.scale.set(tuft.scale, tuft.scale, tuft.scale);
+    dummy.updateMatrix();
+    tufts.setMatrixAt(i, dummy.matrix);
+  });
+  tufts.instanceMatrix.needsUpdate = true;
+  tufts.frustumCulled = false;
+  scene.add(tufts);
+}
+
 function streamRibbon(points, width) {
   const positions = new Float32Array(points.length * 2 * 3);
   const indices = [];
@@ -1165,10 +1197,10 @@ function streamRibbon(points, width) {
     const rightZ = points[i].z - pz * half;
     const base = i * 6;
     positions[base] = leftX;
-    positions[base + 1] = heightAt(leftX, leftZ) + 1.35;
+    positions[base + 1] = heightAt(leftX, leftZ) + 1.85;
     positions[base + 2] = leftZ;
     positions[base + 3] = rightX;
-    positions[base + 4] = heightAt(rightX, rightZ) + 1.35;
+    positions[base + 4] = heightAt(rightX, rightZ) + 1.85;
     positions[base + 5] = rightZ;
     if (i < points.length - 1) {
       const a = i * 2, b = a + 1, c = a + 2, d = a + 3;
@@ -1184,7 +1216,7 @@ function streamRibbon(points, width) {
 
 function buildLogBridge(center, tangent) {
   const bridge = new THREE.Group();
-  const deckY = heightAt(center.x, center.z) + 2.05;
+  const deckY = heightAt(center.x, center.z) + 2.65;
   bridge.position.set(center.x, deckY, center.z);
   bridge.rotation.y = Math.atan2(tangent.x, tangent.z);
 
@@ -1246,6 +1278,7 @@ function buildLandscapeDetails() {
   landscapeMaterials = {
     trunk: new THREE.MeshStandardMaterial({ color: "#4d4438", roughness: 1, flatShading: true }),
     pine: new THREE.MeshStandardMaterial({ color: "#44584b", roughness: 1, flatShading: true }),
+    grass: new THREE.MeshStandardMaterial({ color: "#68795e", roughness: 1, flatShading: true }),
     water: new THREE.MeshStandardMaterial({
       color: "#718d96", roughness: .32, metalness: .05,
       transparent: true, opacity: .76, depthWrite: false, side: THREE.DoubleSide
@@ -1253,6 +1286,7 @@ function buildLandscapeDetails() {
     wood: new THREE.MeshStandardMaterial({ color: "#6f5034", roughness: 1, flatShading: true })
   };
   buildForests();
+  buildMeadowTufts();
   buildStreamsAndBridges();
 }
 
