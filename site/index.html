@@ -199,18 +199,6 @@ body.is-live .status .dot { opacity: 1; }
   top: calc(var(--pad) + var(--safe-t)); right: var(--pad);
   display: flex; gap: var(--space-2);
 }
-.zoom-controls {
-  display: flex;
-  padding: 2px;
-  border: 1px solid var(--color-line);
-  border-radius: var(--radius-lg);
-  background: var(--color-surface);
-  box-shadow: 0 4px 16px rgba(20,30,24,.10);
-}
-.zoom-controls .icon-btn { width: 38px; height: 38px; }
-.zoom-controls .icon-btn + .icon-btn { border-left: 1px solid var(--color-line); }
-.zoom-controls .icon-btn:disabled { opacity: .32; cursor: default; }
-.zoom-controls .icon-btn:disabled:active { transform: none; }
 .icon-btn {
   width: 44px; height: 44px;
   border: none; border-radius: var(--radius-lg);
@@ -568,14 +556,6 @@ li.playing.playing-now .ep-play .icon-pause { display: block; }
   </div>
 
   <div class="corner-actions">
-    <div class="zoom-controls" role="group" aria-label="Zoom peisaj">
-      <button class="icon-btn" id="zoom-out" type="button" aria-label="Depărtează peisajul" aria-keyshortcuts="-">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 12h12"/></svg>
-      </button>
-      <button class="icon-btn" id="zoom-in" type="button" aria-label="Apropie peisajul" aria-keyshortcuts="+">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 6v12M6 12h12"/></svg>
-      </button>
-    </div>
     <button class="icon-btn" id="install-btn" type="button" aria-label="Instalează aplicația">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v13m0 0-4-4m4 4 4-4M5 19h14"/></svg>
     </button>
@@ -1040,11 +1020,12 @@ let hikerLight, hikerMaterials, trail, hemi, sun, fill, sceneFog;
 let landscapeMaterials = null;
 let progress = 0, nightNow = null, lastFrame = 0;
 let trailAlpha = null;
-let zoomTarget = 1, zoomNow = 1, pinchDistance = 0;
+const ZOOM_DEFAULT = .45;
+let zoomTarget = ZOOM_DEFAULT, zoomNow = ZOOM_DEFAULT, pinchDistance = 0;
 const TRAIL_RINGS = 700;   /* inele de-a lungul potecii */
 const TRAIL_TAIL = 95;     /* cât rămâne vizibil în urmă */
 const TRAIL_SIDES = 4;
-const ZOOM_MIN = .46, ZOOM_MAX = 1.35;
+const ZOOM_MIN = .30, ZOOM_MAX = 1.35;
 const SPEED = 1.55;
 const _p = new THREE.Vector3(), _ahead = new THREE.Vector3(), _tan = new THREE.Vector3();
 const _right = new THREE.Vector3(), _c = new THREE.Color();
@@ -1584,7 +1565,7 @@ function initScene() {
   walk.getTangentAt(0, followTan);
   followTan.y = 0;
   followTan.normalize();
-  camera.position.set(_p.x - 80, _p.y + 90, _p.z + 80);
+  camera.position.set(_p.x - 42, _p.y + 58, _p.z + 42);
   aimNow.copy(followNow);
   camera.lookAt(aimNow);
 
@@ -1619,7 +1600,6 @@ function frame(now) {
 
 function fallback2D() {
   renderer = null;
-  document.querySelector(".zoom-controls")?.setAttribute("hidden", "");
   const ctx2 = canvas.getContext("2d");
   if (!ctx2) return;
   function draw() {
@@ -1648,27 +1628,21 @@ initScene();
 /* ============================================================
    ZOOM PEISAJ
    Camera rămâne legată de drumeț; se schimbă doar distanța.
-   Mouse/trackpad, pinch și butoanele folosesc aceeași țintă,
+   Mouse/trackpad, pinch și tastatura folosesc aceeași țintă,
    iar interpolarea din advance() păstrează mișcarea fluidă.
    ============================================================ */
 const stage = document.querySelector(".stage");
-const zoomInBtn = document.getElementById("zoom-in");
-const zoomOutBtn = document.getElementById("zoom-out");
 const zoomStatus = document.getElementById("zoom-status");
 
 function setLandscapeZoom(next, announce) {
   zoomTarget = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, next));
-  zoomInBtn.disabled = zoomTarget <= ZOOM_MIN + .001;
-  zoomOutBtn.disabled = zoomTarget >= ZOOM_MAX - .001;
-  if (announce) zoomStatus.textContent = "Zoom peisaj " + Math.round(100 / zoomTarget) + "%";
+  canvas.dataset.zoom = zoomTarget.toFixed(3);
+  if (announce) zoomStatus.textContent = "Zoom peisaj " + Math.round(ZOOM_DEFAULT / zoomTarget * 100) + "%";
   if (reducedMotion && renderer) {
     advance(0, 0);
     renderer.render(scene, camera);
   }
 }
-
-zoomInBtn.addEventListener("click", () => setLandscapeZoom(zoomTarget * .78, true));
-zoomOutBtn.addEventListener("click", () => setLandscapeZoom(zoomTarget / .78, true));
 
 stage.addEventListener("wheel", (event) => {
   if (!renderer || openSheet) return;
@@ -1712,10 +1686,10 @@ window.addEventListener("keydown", (event) => {
     setLandscapeZoom(zoomTarget / .78, true);
   } else if (event.code === "Space" || event.key === "0") {
     event.preventDefault();
-    setLandscapeZoom(1, true);
+    setLandscapeZoom(ZOOM_DEFAULT, true);
   }
 });
-setLandscapeZoom(1, false);
+setLandscapeZoom(ZOOM_DEFAULT, false);
 
 
 
