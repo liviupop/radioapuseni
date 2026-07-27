@@ -1,0 +1,1304 @@
+<!DOCTYPE html>
+<html lang="ro" data-mode="day">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Radio Apuseni — vocea patrimoniului viu al Munților Apuseni</title>
+<meta name="description" content="Radio Apuseni: infrastructura audio a Ecomuzeului Țării Moților. Ascultă live oameni, locuri, natură și patrimoniu viu din Munții Apuseni.">
+<link rel="canonical" href="https://radioapuseni.ro/">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="ro_RO">
+<meta property="og:site_name" content="Radio Apuseni">
+<meta property="og:title" content="Radio Apuseni — vocea patrimoniului viu">
+<meta property="og:description" content="O arhivă sonoră vie a oamenilor, locurilor și naturii din Munții Apuseni.">
+<meta property="og:url" content="https://radioapuseni.ro/">
+<meta property="og:image" content="https://radioapuseni.ro/assets/og-radio-apuseni.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;1,9..144,400&amp;family=Figtree:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#101913" id="meta-theme">
+<link rel="icon" href="icons/favicon-32.png" sizes="32x32" type="image/png">
+<link rel="icon" href="icons/icon-192.png" sizes="192x192" type="image/png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Apuseni">
+<meta name="mobile-web-app-capable" content="yes">
+
+<style>
+/* ============================================================
+   RADIO APUSENI — v3, „o singură scenă"
+   Interfața este peisajul: cerul și crestele umplu ecranul,
+   soarele/luna din mijloc este butonul de emisie, iar restul
+   (program, arhivă, despre) urcă în foi peste scenă.
+   Ziua: ceață și hârtie; noaptea (22:00–08:00, ora României):
+   întuneric lunar. În emisie, creasta din față urmează sunetul.
+   ============================================================ */
+:root {
+  /* ZIUA */
+  --color-sky-hi: #eef0e7;
+  --color-sky-lo: #dfe3d4;
+  --color-surface: #f5f6ef;
+  --color-line: #cdd2c2;
+  --color-text: #1d2b23;
+  --color-muted: #56675b;
+  --color-accent: #8a5d10;
+  --color-accent-bright: #d9a441;
+  --color-accent-ink: #1c1206;
+  --color-focus: #6e4a0c;
+  --color-danger: #b3391f;
+  --ridge-far: rgba(29,43,35,.16);
+  --ridge-mid: rgba(29,43,35,.34);
+  --ridge-near: rgba(29,43,35,.88);
+  --scrim-top: rgba(238,240,231,.72);
+  --disc-glow: rgba(217,164,65,.40);
+
+  --font-display: "Fraunces", Georgia, "Times New Roman", serif;
+  --font-body: "Figtree", "Segoe UI", system-ui, sans-serif;
+
+  --text-xs: 0.75rem;   --leading-xs: 1.5;
+  --text-sm: 0.875rem;  --leading-sm: 1.6;
+  --text-base: 1.0625rem; --leading-base: 1.7;
+  --text-lg: 1.375rem;  --leading-lg: 1.45;
+  --text-title: clamp(1.7rem, 7.5vw, 3.1rem); --leading-title: 1.06;
+
+  --space-1: 0.25rem; --space-2: 0.5rem; --space-3: 1rem;
+  --space-4: 1.5rem;  --space-6: 2.5rem;
+
+  --radius-sm: 4px; --radius-md: 12px; --radius-lg: 999px;
+  --shadow-md: 0 10px 30px rgba(20,30,24,.20);
+
+  --duration-fast: 150ms; --duration-base: 300ms; --duration-slow: 900ms;
+  --ease-out: cubic-bezier(.22,.61,.36,1);
+
+  --pad: clamp(1rem, 4vw, 2rem);
+  --safe-t: env(safe-area-inset-top, 0px);
+  --safe-b: env(safe-area-inset-bottom, 0px);
+}
+html[data-mode="night"] {
+  --color-sky-hi: #0b1112;
+  --color-sky-lo: #04080a;
+  --color-surface: #121a1c;
+  --color-line: #22302f;
+  --color-text: #dcd9cf;
+  --color-muted: #8b9c9a;
+  --color-accent: #b9c7d6;
+  --color-accent-bright: #e8eef5;
+  --color-accent-ink: #0a0f10;
+  --color-focus: #d7e2ee;
+  --color-danger: #e08a6c;
+  --ridge-far: rgba(220,217,207,.08);
+  --ridge-mid: rgba(220,217,207,.16);
+  --ridge-near: rgba(3,6,7,.92);
+  --scrim-top: rgba(11,17,18,.60);
+  --disc-glow: rgba(232,238,245,.30);
+  --shadow-md: 0 10px 30px rgba(0,0,0,.5);
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0; overflow: hidden;
+  background: linear-gradient(var(--color-sky-hi), var(--color-sky-lo));
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  line-height: var(--leading-base);
+  transition: background var(--duration-slow) var(--ease-out), color var(--duration-slow) var(--ease-out);
+}
+::selection { background: var(--color-accent-bright); color: var(--color-accent-ink); }
+a { color: var(--color-text); text-decoration-color: var(--color-accent); text-underline-offset: 3px; }
+a:hover { color: var(--color-accent); }
+:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 3px; border-radius: var(--radius-sm); }
+
+/* ============ SCENA ============ */
+.stage {
+  position: fixed; inset: 0;
+  height: 100dvh;
+}
+#ridge { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.scrim-top {
+  position: absolute; inset: 0 0 auto 0; height: 38vh;
+  background: linear-gradient(var(--scrim-top), transparent);
+  pointer-events: none;
+  transition: background var(--duration-slow);
+}
+
+/* ---------- statusul, stânga-sus ---------- */
+.status {
+  position: absolute; z-index: 3;
+  top: calc(var(--pad) + var(--safe-t));
+  left: var(--pad);
+  right: calc(var(--pad) + 3.5rem);
+  pointer-events: none;
+}
+.status .label {
+  display: inline-flex; align-items: center; gap: .55em;
+  font-size: var(--text-sm); font-weight: 500;
+  letter-spacing: .04em;
+  color: var(--color-muted);
+  margin: 0 0 var(--space-2);
+}
+.status .dot {
+  width: .6em; height: .6em; border-radius: 50%;
+  background: var(--color-danger); flex: none;
+  opacity: 0; transition: opacity var(--duration-base);
+}
+body.is-live .status .dot { opacity: 1; }
+@media (prefers-reduced-motion: no-preference) {
+  body.is-live .status .dot { animation: pulse 2.2s ease-in-out infinite; }
+}
+@keyframes pulse { 50% { opacity: .35; } }
+.status h1 {
+  margin: 0;
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: var(--text-title);
+  line-height: var(--leading-title);
+  text-transform: uppercase;
+  letter-spacing: .01em;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+.preview-badge {
+  display: inline-flex;
+  margin-left: .6rem;
+  padding: .2rem .55rem;
+  border: 1px solid currentColor;
+  border-radius: var(--radius-lg);
+  font-size: .67rem;
+  line-height: 1;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  vertical-align: middle;
+}
+
+/* ---------- sus-dreapta: instalare ---------- */
+.corner-actions {
+  position: absolute; z-index: 3;
+  top: calc(var(--pad) + var(--safe-t)); right: var(--pad);
+  display: flex; gap: var(--space-2);
+}
+.icon-btn {
+  width: 44px; height: 44px;
+  border: none; border-radius: var(--radius-lg);
+  background: transparent; color: var(--color-text);
+  cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
+  transition: background var(--duration-fast), color var(--duration-fast), transform var(--duration-fast);
+}
+.icon-btn:hover { background: var(--color-line); }
+.icon-btn:active { transform: scale(.94); }
+.icon-btn svg { width: 22px; height: 22px; }
+#install-btn { display: none; }
+#install-btn.show { display: inline-flex; }
+
+/* ---------- discul central: butonul de emisie ---------- */
+.disc {
+  --size: clamp(6rem, 22vw, 8.5rem);
+  position: absolute; z-index: 2;
+  left: 50%; top: 44%;
+  transform: translate(-50%, -50%);
+  width: var(--size); height: var(--size);
+  border-radius: var(--radius-lg); border: none; cursor: pointer;
+  background: radial-gradient(circle at 35% 30%, #f4d88f, var(--color-accent-bright) 72%);
+  color: var(--color-accent-ink);
+  display: inline-flex; align-items: center; justify-content: center;
+  box-shadow: 0 0 70px 0 var(--disc-glow), var(--shadow-md);
+  transition: box-shadow var(--duration-slow) var(--ease-out), background var(--duration-slow);
+}
+html[data-mode="night"] .disc {
+  background: radial-gradient(circle at 35% 30%, #ffffff, var(--color-accent-bright) 78%);
+}
+.disc:hover { transform: translate(-50%, -50%) scale(1.04); }
+.disc:active { transform: translate(-50%, -50%) scale(.97); }
+.disc:focus-visible { outline-offset: 8px; }
+.disc[disabled] { opacity: .55; cursor: wait; }
+body.is-live .disc, body.is-ep.playing-now .disc {
+  box-shadow: 0 0 130px 12px var(--disc-glow), var(--shadow-md);
+}
+.disc svg { width: 30%; height: 30%; display: block; }
+.disc .icon-pause { display: none; }
+body.is-live .disc .icon-play,
+body.is-ep.playing-now .disc .icon-play { display: none; }
+body.is-live .disc .icon-pause,
+body.is-ep.playing-now .disc .icon-pause { display: block; }
+@media (prefers-reduced-motion: no-preference) {
+  body.is-loading .disc { animation: breathe 1.4s ease-in-out infinite; }
+}
+@keyframes breathe { 50% { transform: translate(-50%, -50%) scale(1.05); } }
+
+.player-msg {
+  position: absolute; z-index: 3;
+  left: 50%; top: calc(44% + clamp(3.6rem, 13vw, 5.2rem));
+  transform: translateX(-50%);
+  width: min(85vw, 24rem);
+  margin: 0; text-align: center;
+  display: none;
+  font-size: var(--text-sm); line-height: var(--leading-sm);
+  color: var(--color-danger);
+}
+.player-msg.show { display: block; }
+
+/* ---------- jos: marca și iconițele ---------- */
+.bottombar {
+  position: absolute; z-index: 3;
+  left: var(--pad); right: var(--pad);
+  bottom: calc(var(--pad) + var(--safe-b));
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--space-3);
+}
+.brand {
+  display: flex; align-items: center; gap: var(--space-2);
+  text-decoration: none;
+}
+.brand img { width: 34px; height: 34px; border-radius: 8px; display: block; }
+.brand span {
+  font-family: var(--font-display); font-weight: 500;
+  font-size: var(--text-xs); letter-spacing: .2em; text-transform: uppercase;
+  line-height: 1.25;
+}
+.bottombar nav { display: flex; gap: var(--space-1); }
+.bottombar .icon-btn { color: var(--color-text); }
+
+/* ============ FOILE (program / arhivă / despre) ============ */
+.sheet {
+  position: fixed; inset: 0; z-index: 20;
+  background: var(--color-surface);
+  transform: translateY(100%);
+  transition: transform var(--duration-base) var(--ease-out);
+  display: flex; flex-direction: column;
+  visibility: hidden;
+}
+.sheet.open { transform: translateY(0); visibility: visible; }
+@media (prefers-reduced-motion: reduce) { .sheet { transition: none; } }
+.sheet-head {
+  flex: none;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: calc(var(--space-3) + var(--safe-t)) var(--pad) var(--space-3);
+  border-bottom: 1px solid var(--color-line);
+}
+.sheet-head h2 {
+  margin: 0;
+  font-family: var(--font-display); font-weight: 500;
+  font-size: var(--text-lg);
+}
+.sheet-body {
+  flex: 1; overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: var(--space-4) var(--pad) calc(var(--space-6) + var(--safe-b));
+}
+.sheet-body > :first-child { margin-top: 0; }
+.lede { color: var(--color-muted); max-width: 44rem; margin: 0 0 var(--space-4); }
+.subhead {
+  font-family: var(--font-display); font-weight: 500;
+  font-size: var(--text-lg); line-height: var(--leading-lg);
+  margin: var(--space-6) 0 var(--space-2);
+}
+
+/* cronologia */
+.timeline { margin: 0 0 var(--space-3); }
+.tl-bar {
+  position: relative; display: flex;
+  height: 3.25rem; border: 1px solid var(--color-line);
+  border-radius: var(--radius-md); overflow: hidden;
+  background: var(--color-surface);
+}
+.tl-seg { position: relative; border-left: 1px solid var(--color-line); }
+.tl-seg--morning { width: 16.7%; }
+.tl-seg--day { width: 33.3%; }
+.tl-seg--evening { width: 8.3%; }
+.tl-seg--night { width: 41.7%; }
+.tl-seg:first-child { border-left: none; }
+.tl-seg .lbl {
+  position: absolute; inset: auto auto 50% var(--space-2); transform: translateY(50%);
+  font-size: var(--text-xs); letter-spacing: .14em; text-transform: uppercase;
+  color: var(--color-muted); white-space: nowrap;
+}
+.tl-seg--noapte { background: repeating-linear-gradient(-45deg, transparent 0 6px, var(--color-line) 6px 7px); }
+.tl-now { position: absolute; top: -0.45rem; bottom: -0.45rem; width: 2px; background: var(--color-accent); z-index: 2; }
+.tl-now::after {
+  content: ""; position: absolute; top: 0; left: 50%;
+  width: .6rem; height: .6rem; border-radius: 50%;
+  background: var(--color-accent-bright); transform: translate(-50%, -55%);
+  border: 2px solid var(--color-surface);
+}
+.tl-scale {
+  display: flex; justify-content: space-between;
+  font-size: var(--text-xs); color: var(--color-muted);
+  letter-spacing: .1em; margin-top: var(--space-2);
+  font-variant-numeric: tabular-nums;
+}
+.tl-caption { font-size: var(--text-sm); color: var(--color-muted); margin: var(--space-3) 0 0; }
+.tl-caption strong { color: var(--color-text); font-weight: 600; }
+
+/* arhiva */
+.feeds { display: grid; grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr)); gap: var(--space-3); margin: 0; padding: 0; list-style: none; }
+.feed {
+  background: var(--color-surface); border: 1px solid var(--color-line);
+  border-radius: var(--radius-md); padding: var(--space-3);
+  transition: border-color var(--duration-fast);
+}
+.feed:hover { border-color: var(--color-accent); }
+.feed h3 { margin: 0 0 var(--space-1); font-family: var(--font-display); font-weight: 500; font-size: var(--text-base); }
+.feed a { font-size: var(--text-sm); color: var(--color-muted); text-decoration: none; }
+.feed a:hover { color: var(--color-accent); }
+.feed a::after { content: " ↗"; }
+
+.episodes { margin: 0; padding: 0; list-style: none; }
+.episodes li {
+  display: grid; grid-template-columns: auto 1fr auto; gap: var(--space-3);
+  align-items: center; padding: var(--space-3) var(--space-2);
+  border-top: 1px solid var(--color-line);
+  border-radius: var(--radius-sm);
+  transition: background var(--duration-fast);
+}
+.episodes li.playing { background: var(--color-line); }
+.episodes li.playing .ep-title { color: var(--color-accent); }
+.ep-play {
+  width: 44px; height: 44px; border-radius: var(--radius-lg);
+  background: transparent; border: 1px solid var(--color-line);
+  color: var(--color-text); cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
+  transition: border-color var(--duration-fast), color var(--duration-fast), background var(--duration-fast);
+}
+.ep-play:hover { border-color: var(--color-accent); color: var(--color-accent); }
+li.playing .ep-play { background: var(--color-accent-bright); border-color: var(--color-accent-bright); color: var(--color-accent-ink); }
+.ep-play svg { width: 14px; height: 14px; }
+.ep-play .icon-pause { display: none; }
+li.playing.playing-now .ep-play .icon-play { display: none; }
+li.playing.playing-now .ep-play .icon-pause { display: block; }
+.episodes .ep-title { font-weight: 500; }
+.episodes .ep-meta { display: block; font-size: var(--text-xs); color: var(--color-muted); letter-spacing: .04em; }
+.episodes .ep-date { font-size: var(--text-xs); color: var(--color-muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.arhiva-note { font-size: var(--text-sm); color: var(--color-muted); }
+.arhiva-note.hidden { display: none; }
+.feed .tagline { margin: 0 0 var(--space-2); color: var(--color-muted); font-size: var(--text-sm); line-height: var(--leading-sm); }
+.feed .coming { color: var(--color-muted); font-size: var(--text-xs); letter-spacing: .08em; text-transform: uppercase; }
+.editorial-figure {
+  margin: 0 0 var(--space-4);
+  overflow: hidden;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-md);
+  background: var(--color-line);
+}
+.editorial-figure img { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; object-fit: cover; }
+.editorial-figure figcaption { padding: var(--space-2) var(--space-3); color: var(--color-muted); font-size: var(--text-xs); }
+.source-note { padding-top: var(--space-3); border-top: 1px solid var(--color-line); color: var(--color-muted); font-size: var(--text-xs); line-height: var(--leading-sm); }
+
+/* ---------- indiciu iOS ---------- */
+.ios-hint {
+  position: fixed; left: var(--space-3); right: var(--space-3);
+  bottom: calc(5.5rem + var(--safe-b));
+  z-index: 30;
+  display: none;
+  align-items: center; gap: var(--space-3);
+  background: var(--color-surface); color: var(--color-text);
+  border: 1px solid var(--color-line); border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  padding: var(--space-3);
+  max-width: 26rem; margin: 0 auto;
+}
+.ios-hint.show { display: flex; }
+.ios-hint p { margin: 0; font-size: var(--text-sm); line-height: var(--leading-sm); }
+.ios-hint strong { color: var(--color-accent); }
+.ios-hint .share-glyph {
+  flex: none; width: 1.6rem; height: 1.6rem;
+  display: inline-flex; align-items: center; justify-content: center;
+  border: 1px solid var(--color-line); border-radius: var(--radius-sm);
+}
+.ios-hint .share-glyph svg { width: 14px; height: 14px; }
+.ios-hint button.dismiss {
+  flex: none; margin-left: auto;
+  width: 32px; height: 32px; min-width: 32px;
+  border: none; background: transparent; color: var(--color-muted);
+  cursor: pointer; border-radius: var(--radius-lg);
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.ios-hint button.dismiss:hover { color: var(--color-text); background: var(--color-line); }
+
+@media (min-width: 900px) {
+  /* pe ecrane mari, foile devin panouri centrale, nu ecrane întregi */
+  .sheet {
+    inset: auto 0 0 0; height: min(82vh, 46rem);
+    max-width: 46rem; margin: 0 auto;
+    border-radius: var(--radius-md) var(--radius-md) 0 0;
+    border: 1px solid var(--color-line); border-bottom: none;
+    box-shadow: var(--shadow-md);
+  }
+}
+</style>
+</head>
+<body>
+
+<!-- ============ SCENA ============ -->
+<div class="stage">
+  <canvas id="ridge" aria-hidden="true"></canvas>
+  <div class="scrim-top" aria-hidden="true"></div>
+
+  <div class="status">
+    <p class="label"><span class="dot" aria-hidden="true"></span><span id="status-label">Acum în grilă:</span><span class="preview-badge" id="preview-badge">Prototip public</span></p>
+    <h1 id="status-title" aria-live="polite">Radio Apuseni</h1>
+  </div>
+
+  <div class="corner-actions">
+    <button class="icon-btn" id="install-btn" type="button" aria-label="Instalează aplicația">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v13m0 0-4-4m4 4 4-4M5 19h14"/></svg>
+    </button>
+  </div>
+
+  <button class="disc" id="play" type="button" aria-pressed="false" aria-label="Pornește Radio Apuseni">
+    <svg class="icon-play" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15l13-7.5z"/></svg>
+    <svg class="icon-pause" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 4h4.5v16H6zM13.5 4H18v16h-4.5z"/></svg>
+  </button>
+  <p class="player-msg" id="player-msg" role="alert"></p>
+
+  <div class="bottombar">
+    <a class="brand" href="/" aria-label="Radio Apuseni — pagina principală">
+      <img src="icons/icon-192.png" alt="" width="34" height="34">
+      <span>Radio<br>Apuseni</span>
+    </a>
+    <nav aria-label="Secțiuni">
+      <button class="icon-btn" type="button" data-sheet="sheet-program" aria-label="Programul zilei" aria-haspopup="dialog">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+      </button>
+      <button class="icon-btn" type="button" data-sheet="sheet-arhiva" aria-label="Arhiva emisiunilor" aria-haspopup="dialog">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7h18M5 7l1.2 12.2A2 2 0 0 0 8.2 21h7.6a2 2 0 0 0 2-1.8L19 7M9 4h6l1 3H8z"/><path d="M10 12h4"/></svg>
+      </button>
+      <button class="icon-btn" type="button" data-sheet="sheet-despre" aria-label="Despre Radio Apuseni" aria-haspopup="dialog">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><path d="M12 8h.01"/></svg>
+      </button>
+    </nav>
+  </div>
+</div>
+
+<!-- ============ FOAIA: PROGRAM ============ -->
+<section class="sheet" id="sheet-program" role="dialog" aria-modal="true" aria-labelledby="ttl-program">
+  <div class="sheet-head">
+    <h2 id="ttl-program">Ziua de emisie</h2>
+    <button class="icon-btn" type="button" data-close aria-label="Închide">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+    </button>
+  </div>
+  <div class="sheet-body">
+    <p class="lede">Programul urmează ritmul muntelui: emisiuni dimineața, reluări peste zi, Povestea de seară la 21:45, apoi doar sunetele naturii până la răsărit. Acul arată unde ne aflăm acum, pe ora României.</p>
+    <div class="timeline">
+      <div class="tl-bar" role="img" aria-label="Cronologia unei zile de emisie, de la 08:00 până a doua zi la 08:00" id="tl-bar">
+        <div class="tl-seg tl-seg--dim tl-seg--morning"><span class="lbl">Dimineața</span></div>
+        <div class="tl-seg tl-seg--day"><span class="lbl">Ziua · reluări</span></div>
+        <div class="tl-seg tl-seg--evening"><span class="lbl">Seara</span></div>
+        <div class="tl-seg tl-seg--noapte tl-seg--night"><span class="lbl">Noaptea Apusenilor</span></div>
+        <div class="tl-now" id="tl-now"></div>
+      </div>
+      <div class="tl-scale" aria-hidden="true">
+        <span>08:00</span><span>12:00</span><span>20:00</span><span>22:00</span><span>08:00</span>
+      </div>
+    </div>
+    <p class="tl-caption" id="tl-caption"></p>
+  </div>
+</section>
+
+<!-- ============ FOAIA: ARHIVA ============ -->
+<section class="sheet" id="sheet-arhiva" role="dialog" aria-modal="true" aria-labelledby="ttl-arhiva">
+  <div class="sheet-head">
+    <h2 id="ttl-arhiva">Arhiva emisiunilor</h2>
+    <button class="icon-btn" type="button" data-close aria-label="Închide">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+    </button>
+  </div>
+  <div class="sheet-body">
+    <p class="lede">Toate episoadele vor fi păstrate și vor putea fi ascultate oricând, aici sau în orice aplicație de podcast. Până la primele documentări proprii, puteți testa experiența cu trei peisaje sonore din domeniul public.</p>
+    <ul class="feeds" id="feeds"></ul>
+    <h3 class="subhead">Episoade recente</h3>
+    <ul class="episodes" id="episodes"></ul>
+    <p class="arhiva-note" id="arhiva-note">Arhiva se încarcă…</p>
+  </div>
+</section>
+
+<!-- ============ FOAIA: DESPRE ============ -->
+<section class="sheet" id="sheet-despre" role="dialog" aria-modal="true" aria-labelledby="ttl-despre">
+  <div class="sheet-head">
+    <h2 id="ttl-despre">Despre Radio Apuseni</h2>
+    <button class="icon-btn" type="button" data-close aria-label="Închide">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+    </button>
+  </div>
+  <div class="sheet-body">
+    <figure class="editorial-figure">
+      <img src="assets/radio-apuseni-editorial.webp" width="1600" height="900" loading="lazy" alt="Ilustrație editorială cu munții, pădurile și gospodăriile risipite ale Apusenilor la răsărit">
+      <figcaption>Imagine editorială provizorie pentru etapa de lansare.</figcaption>
+    </figure>
+    <p class="lede">Radio Apuseni este infrastructura audio a Ecomuzeului Țării Moților, dezvoltată de Apuseni Eco Roots. Nu urmărim actualitatea de moment: fiecare interviu, fiecare sunet și fiecare poveste sunt gândite să rămână valoroase și peste zece sau douăzeci de ani.</p>
+    <p class="lede">O singură întrebare decide ce intră în emisie: ajută acest conținut la o mai bună înțelegere a Munților Apuseni?</p>
+    <p class="lede">Radio Apuseni · Ecomuzeul Țării Moților · Apuseni Eco Roots<br>Documentare, educație, comunitate.</p>
+    <p class="source-note">Această versiune publică este un prototip funcțional. Înregistrările demonstrative nu provin din Munții Apuseni; sunt marcate explicit și vor fi înlocuite cu documentări proprii înaintea lansării editoriale. <a href="licente.html">Surse și licențe</a>.</p>
+  </div>
+</section>
+
+<!-- ============ INDICIU iOS ============ -->
+<div class="ios-hint" id="ios-hint" role="note">
+  <span class="share-glyph" aria-hidden="true">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4m0 0-4 4m4-4 4 4"/><path d="M5 12v7a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-7"/></svg>
+  </span>
+  <p>Instalați Radio Apuseni pe ecranul principal: atingeți <strong>Distribuire</strong>, apoi <strong>Adaugă pe ecranul principal</strong>.</p>
+  <button class="dismiss" id="ios-hint-dismiss" type="button" aria-label="Ascunde acest indiciu">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+  </button>
+</div>
+
+<audio id="stream" preload="none" crossorigin="anonymous"></audio>
+
+<script src="vendor/three.min.js"></script>
+<script src="config.js"></script>
+<script>
+/* ============================================================
+   CONFIGURARE — valorile publice sunt în config.js.
+   Schimbați mode în "live" după instalarea AzuraCast.
+   ============================================================ */
+const CONFIG = window.RADIO_CONFIG;
+const isConfigured = CONFIG.mode === "live" || CONFIG.mockStream.length > 0;
+const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* ---------- ora României ---------- */
+function bucharest() {
+  try {
+    const parts = new Intl.DateTimeFormat("en-US", {
+      timeZone: "Europe/Bucharest", hour: "numeric", minute: "numeric",
+      hour12: false, weekday: "short"
+    }).formatToParts(new Date());
+    const get = t => parts.find(p => p.type === t)?.value;
+    const wdMap = { Sun:0, Mon:1, Tue:2, Wed:3, Thu:4, Fri:5, Sat:6 };
+    return { h: Number(get("hour")) % 24, m: Number(get("minute")), wd: wdMap[get("weekday")] ?? new Date().getDay() };
+  } catch (e) {
+    const d = new Date(); return { h: d.getHours(), m: d.getMinutes(), wd: d.getDay() };
+  }
+}
+function currentSlot(t) {
+  if (t.h >= 22 || t.h < 8) return "Noaptea Apusenilor";
+  if (t.h === 21 && t.m >= 45) return "Povestea de seară";
+  const weekdayShows = {
+    1: "Glasul Locului",
+    2: "Jurnal de Teren",
+    3: "Peisajul Viu",
+    4: "Custodes",
+    5: "Glasul Pădurii",
+    6: "Selecțiile săptămânii",
+    0: "Patrimoniu și reflecție"
+  };
+  if (t.h === 8) return "Vocea Munților Apuseni";
+  if (t.h >= 9 && t.h < 11) return weekdayShows[t.wd];
+  if (t.h >= 20) return "Reluarea serii · " + weekdayShows[t.wd];
+  if (t.h >= 12) return "Reluări și peisaj sonor";
+  return "Dimineața în Apuseni";
+}
+
+/* ---------- referințe ---------- */
+const audio = document.getElementById("stream");
+const playBtn = document.getElementById("play");
+const msg = document.getElementById("player-msg");
+const statusLabel = document.getElementById("status-label");
+const statusTitle = document.getElementById("status-title");
+const tlNow = document.getElementById("tl-now");
+const tlCaption = document.getElementById("tl-caption");
+const metaTheme = document.getElementById("meta-theme");
+let currentEpLi = null;
+let currentEp = null;
+let liveTitle = null;   /* titlul din API, dacă există */
+let mockTrackIndex = 0;
+
+function showMsg(text) { msg.textContent = text; msg.classList.add("show"); }
+function hideMsg() { msg.classList.remove("show"); }
+function escapeHtml(s) { const t = document.createElement("span"); t.textContent = s; return t.innerHTML; }
+
+/* ---------- ceasul: zi/noapte, ac, status implicit ---------- */
+function applyClock() {
+  const t = bucharest();
+  const night = (t.h >= 22 || t.h < 8);
+  document.documentElement.dataset.mode = night ? "night" : "day";
+  metaTheme.setAttribute("content", night ? "#0a0f10" : "#101913");
+  if (typeof terrainRetint === "function") terrainRetint(night);
+  if (window.terrainRetintFallback) terrainRetintFallback();
+
+  const minsSince8 = ((t.h - 8 + 24) % 24) * 60 + t.m;
+  tlNow.style.left = (minsSince8 / (24 * 60) * 100).toFixed(2) + "%";
+
+  const slot = currentSlot(t);
+  const days = ["Duminică","Luni","Marți","Miercuri","Joi","Vineri","Sâmbătă"];
+  tlCaption.innerHTML = "Acum, în grilă: <strong>" + slot + "</strong> · " + days[t.wd] + ", " +
+    String(t.h).padStart(2,"0") + ":" + String(t.m).padStart(2,"0") + ", ora României.";
+
+  renderStatus();
+  return { night, slot };
+}
+
+/* ---------- statusul din stânga-sus ---------- */
+function renderStatus() {
+  const isLive = document.body.classList.contains("is-live");
+  const isEp = document.body.classList.contains("is-ep");
+  if (isLive) {
+    statusLabel.textContent = CONFIG.mode === "live" ? "În direct:" : "Program demonstrativ:";
+    statusTitle.textContent = liveTitle || currentSlot(bucharest());
+  } else if (isEp) {
+    statusLabel.textContent = audio.paused ? "În pauză · din arhivă:" : "Din arhivă:";
+    statusTitle.textContent = currentEp?.title || "Episod";
+  } else {
+    statusLabel.textContent = "Acum în grilă:";
+    statusTitle.textContent = currentSlot(bucharest());
+  }
+}
+
+/* ---------- Media Session: controale pe lock screen ---------- */
+function updateMediaSession() {
+  if (!("mediaSession" in navigator)) return;
+  const isLive = document.body.classList.contains("is-live");
+  const isEp = document.body.classList.contains("is-ep");
+  if (!isLive && !isEp) return;
+  try {
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: isLive ? (liveTitle || "În direct") : (currentEp?.title || "Episod"),
+      artist: "Radio Apuseni",
+      album: isLive ? "Emisie live" : (currentEp?.show || "Arhivă"),
+      artwork: [
+        { src: "icons/icon-192.png", sizes: "192x192", type: "image/png" },
+        { src: "icons/icon-512.png", sizes: "512x512", type: "image/png" }
+      ]
+    });
+    navigator.mediaSession.playbackState = audio.paused ? "paused" : "playing";
+    navigator.mediaSession.setActionHandler("play", () => { audio.play().catch(() => {}); });
+    navigator.mediaSession.setActionHandler("pause", () => {
+      if (document.body.classList.contains("is-live")) stopAll(); else audio.pause();
+    });
+  } catch (e) { /* opțional */ }
+}
+
+/* ---------- starea playerului ---------- */
+function setState(state, meta) { /* 'off' | 'live' | 'ep' */
+  document.body.classList.toggle("is-live", state === "live");
+  document.body.classList.toggle("is-ep", state === "ep");
+  document.body.classList.toggle("playing-now", state !== "off" && !audio.paused);
+  playBtn.setAttribute("aria-pressed", String(state !== "off" && !audio.paused));
+  playBtn.setAttribute("aria-label",
+    state === "live" ? "Oprește emisia live"
+    : state === "ep" ? (audio.paused ? "Reia episodul" : "Pune episodul pe pauză")
+    : "Pornește Radio Apuseni");
+  if (currentEpLi) currentEpLi.classList.remove("playing", "playing-now");
+  if (state === "ep" && meta?.li) {
+    currentEpLi = meta.li; currentEp = meta;
+    currentEpLi.classList.add("playing");
+    currentEpLi.classList.toggle("playing-now", !audio.paused);
+  }
+  if (state !== "ep") { currentEp = null; currentEpLi = null; }
+  if (state !== "live") liveTitle = null;
+  renderStatus();
+  updateMediaSession();
+  if (state === "off" && reducedMotion) stopVisualizerIfIdle();
+}
+function stopAll() { audio.pause(); audio.removeAttribute("src"); setState("off"); }
+
+async function playLive() {
+  hideMsg();
+  if (!isConfigured) {
+    showMsg("Streamul nu este încă activ. Radio Apuseni se pregătește de emisie: reveniți curând sau explorați arhiva.");
+    return;
+  }
+  try {
+    document.body.classList.add("is-loading");
+    playBtn.disabled = true;
+    const selected = CONFIG.mode === "live" ? { url: CONFIG.streamUrl, title: null } : CONFIG.mockStream[mockTrackIndex];
+    liveTitle = selected.title;
+    audio.src = selected.url + (selected.url.includes("?") ? "&" : "?") + "t=" + Date.now();
+    await audio.play();
+    setState("live");
+    startVisualizer();
+    refreshNowPlaying();
+  } catch (err) {
+    /* fără antete CORS, reîncercăm fără analiză audio: creasta respiră sintetic, emisia merge */
+    if (audio.crossOrigin && !audioCtx) {
+      try {
+        audio.removeAttribute("crossorigin");
+        const selected = CONFIG.mode === "live" ? { url: CONFIG.streamUrl } : CONFIG.mockStream[mockTrackIndex];
+        audio.src = selected.url + (selected.url.includes("?") ? "&" : "?") + "t=" + Date.now();
+        await audio.play();
+        setState("live");
+        startVisualizer();
+        refreshNowPlaying();
+        return;
+      } catch (err2) { /* mesajul de mai jos */ }
+    }
+    setState("off");
+    showMsg("Nu am putut porni streamul. Verificați conexiunea și încercați din nou; muntele are răbdare.");
+  } finally {
+    document.body.classList.remove("is-loading");
+    playBtn.disabled = false;
+  }
+}
+
+/* discul central controlează ce se aude acum */
+playBtn.addEventListener("click", () => {
+  if (document.body.classList.contains("is-live")) { stopAll(); return; }
+  if (document.body.classList.contains("is-ep")) {
+    if (audio.paused) audio.play().catch(() => {}); else audio.pause();
+    return;
+  }
+  playLive();
+});
+audio.addEventListener("play",  () => { document.body.classList.toggle("playing-now", true);  renderStatus(); updateMediaSession(); syncEpRow(); });
+audio.addEventListener("pause", () => { document.body.classList.toggle("playing-now", false); renderStatus(); updateMediaSession(); syncEpRow(); });
+function syncEpRow() { if (currentEpLi) currentEpLi.classList.toggle("playing-now", !audio.paused); }
+audio.addEventListener("error", () => {
+  if (document.body.classList.contains("is-live")) {
+    setState("off");
+    showMsg("Legătura cu radioul s-a întrerupt. Apăsați din nou pe disc pentru a reveni în emisie.");
+  }
+});
+audio.addEventListener("ended", async () => {
+  if (document.body.classList.contains("is-live") && CONFIG.mode === "preview") {
+    mockTrackIndex = (mockTrackIndex + 1) % CONFIG.mockStream.length;
+    liveTitle = CONFIG.mockStream[mockTrackIndex].title;
+    audio.src = CONFIG.mockStream[mockTrackIndex].url;
+    await audio.play().catch(() => setState("off"));
+    renderStatus();
+    updateMediaSession();
+    return;
+  }
+  if (document.body.classList.contains("is-ep")) setState("off");
+});
+
+/* ---------- now playing (API AzuraCast) ---------- */
+async function refreshNowPlaying() {
+  if (CONFIG.mode !== "live") return;
+  try {
+    const r = await fetch(CONFIG.nowPlayingApi, { cache: "no-store" });
+    if (!r.ok) throw new Error(r.status);
+    const d = await r.json();
+    const title = d?.now_playing?.song?.title || d?.now_playing?.song?.text;
+    if (title) { liveTitle = title; renderStatus(); updateMediaSession(); }
+  } catch (e) { /* grila locală rămâne sursa de context */ }
+}
+if (CONFIG.mode === "live") setInterval(refreshNowPlaying, 30000);
+
+/* ============================================================
+   MUNTELE
+   Privire oblică de mare altitudine, ca hărțile 3D de relief:
+   creste dese, văi ramificate, orizont care se pierde în ceață.
+   Randare de tip „clay": lumină rece de cer, cheie caldă,
+   fără umbre proiectate (ele înnegreau relieful fin).
+   Un punct roșu urcă lent pe potecă, lăsând o urmă vizibilă,
+   ținut deliberat în stânga-jos, departe de butonul de emisie.
+   ============================================================ */
+const canvas = document.getElementById("ridge");
+let analyser = null, audioCtx = null, freq = null;
+
+function startVisualizer() {
+  if (!audioCtx && audio.crossOrigin === "anonymous") {
+    try {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const src = audioCtx.createMediaElementSource(audio);
+      analyser = audioCtx.createAnalyser();
+      analyser.fftSize = 64;
+      freq = new Uint8Array(analyser.frequencyBinCount);
+      src.connect(analyser);
+      analyser.connect(audioCtx.destination);
+    } catch (e) { analyser = null; }
+  }
+  if (audioCtx && audioCtx.state === "suspended") audioCtx.resume();
+}
+function stopVisualizerIfIdle() { }
+
+/* ---------- relief determinist ---------- */
+function hash2(ix, iz) {
+  let n = ix * 374761393 + iz * 668265263;
+  n = (n ^ (n >> 13)) * 1274126177;
+  return (((n ^ (n >> 16)) >>> 0) % 100000) / 100000;
+}
+function vnoise(x, z) {
+  const ix = Math.floor(x), iz = Math.floor(z);
+  const fx = x - ix, fz = z - iz;
+  const ux = fx * fx * (3 - 2 * fx), uz = fz * fz * (3 - 2 * fz);
+  const a = hash2(ix, iz), b = hash2(ix + 1, iz), c = hash2(ix, iz + 1), d = hash2(ix + 1, iz + 1);
+  return a + (b - a) * ux + (c - a) * uz + (a - b - c + d) * ux * uz;
+}
+function fbm(x, z, oct) {
+  let v = 0, amp = .5, f = 1;
+  for (let o = 0; o < (oct || 4); o++) { v += amp * vnoise(x * f, z * f); amp *= .5; f *= 2.03; }
+  return v;
+}
+/* creste ascuțite, cu amplitudine care scade lin: dă lanțuri, nu movile */
+function ridgedN(x, z, oct) {
+  let v = 0, amp = .5, f = 1, prev = 1;
+  for (let o = 0; o < (oct || 6); o++) {
+    const r = 1 - Math.abs(2 * vnoise(x * f, z * f) - 1);
+    v += amp * r * r * prev;
+    prev = r;
+    amp *= .52; f *= 2.07;
+  }
+  return v;
+}
+const T = { size: 1000, seg: 232, hMax: 97 };
+/* deformarea domeniului: crestele devin sinuoase, ca lanțurile reale */
+function heightAt(x, z) {
+  const wx = x + fbm(x * .0026 + 1.7, z * .0026 + 4.3, 3) * 120 - 60;
+  const wz = z + fbm(x * .0026 + 8.1, z * .0026 + 2.9, 3) * 120 - 60;
+  const chains = ridgedN(wx * .0058, wz * .0058, 6) * 96;
+  const broad  = fbm(x * .0018 + 3.7, z * .0018 + 9.2, 3) * 26;
+  const detail = fbm(x * .013, z * .013, 2) * 2.6;
+  const valley = Math.exp(-Math.pow((z - x * .32 + 40) * .0055, 2)) * 34;
+  return Math.max(0, chains + broad + detail - valley - 6);
+}
+
+/* ---------- poteca ---------- */
+const WAY = [
+  [-330, 210], [-250, 130], [-190, 170], [-95, 85], [-10, 120],
+  [70, 40], [30, -75], [-70, -140], [-190, -95], [-300, -140],
+  [-370, -20], [-330, 210]
+];
+let walk = null, walkLen = 1;
+
+let renderer, scene, camera, terrainGeo, terrainMesh;
+let dot, dotGlow, dotLight, trail, hemi, sun, fill, sceneFog;
+let progress = 0, nightNow = null, lastFrame = 0;
+let trailAlpha = null;
+const TRAIL_RINGS = 700;   /* inele de-a lungul potecii */
+const TRAIL_TAIL = 95;     /* cât rămâne vizibil în urmă */
+const SPEED = 4.2;
+const _p = new THREE.Vector3(), _ahead = new THREE.Vector3(), _tan = new THREE.Vector3();
+const _right = new THREE.Vector3(), _c = new THREE.Color();
+const UP = new THREE.Vector3(0, 1, 0);
+const camGoal = new THREE.Vector3(), aimGoal = new THREE.Vector3(), aimNow = new THREE.Vector3();
+
+/* poteca proiectată pe teren, ca să nu intre în stâncă */
+function buildWalk() {
+  const raw = new THREE.CatmullRomCurve3(
+    WAY.map(([x, z]) => new THREE.Vector3(x, 0, z)), true, "catmullrom", .4);
+  const N = 700, pts = [];
+  for (let i = 0; i < N; i++) {
+    const p = raw.getPointAt(i / N);
+    p.y = heightAt(p.x, p.z) + 2.2;
+    pts.push(p);
+  }
+  walk = new THREE.CatmullRomCurve3(pts, true, "catmullrom", .2);
+  walkLen = walk.getLength();
+}
+
+function buildTerrain() {
+  const seg = Math.min(T.seg, innerWidth < 820 ? 210 : T.seg);
+  terrainGeo = new THREE.PlaneGeometry(T.size, T.size, seg, seg);
+  terrainGeo.rotateX(-Math.PI / 2);
+  const pos = terrainGeo.attributes.position;
+  for (let i = 0; i < pos.count; i++) pos.setY(i, heightAt(pos.getX(i), pos.getZ(i)));
+  terrainGeo.computeVertexNormals();
+  terrainGeo.setAttribute("color", new THREE.BufferAttribute(new Float32Array(pos.count * 3), 3));
+  terrainMesh = new THREE.Mesh(terrainGeo, new THREE.MeshStandardMaterial({
+    vertexColors: true, roughness: 1, metalness: 0, flatShading: true
+  }));
+  scene.add(terrainMesh);
+}
+
+/* culoarea: cinci trepte de altitudine, ca la hărțile desenate.
+   Benzile nete, nu degradeuri, dau registrul de ilustrație. */
+const BANDS = {
+  day:   ["#5f7059", "#7c8c6d", "#9aa886", "#bcc5aa", "#e4e8d8"],
+  night: ["#0a1215", "#14212a", "#22343f", "#38505d", "#7d94a0"]
+};
+function terrainRetint(night) {
+  if (!renderer || night === nightNow) return;
+  nightNow = night;
+  const band = (night ? BANDS.night : BANDS.day).map(h => new THREE.Color(h));
+  const shade = new THREE.Color(night ? "#050b0e" : "#4a5a4c");
+  const pos = terrainGeo.attributes.position;
+  const nor = terrainGeo.attributes.normal;
+  const col = terrainGeo.attributes.color;
+  for (let i = 0; i < pos.count; i++) {
+    const t = Math.min(.999, Math.max(0, pos.getY(i) / T.hMax));
+    _c.copy(band[Math.floor(t * band.length)]);
+    /* doar fețele foarte abrupte se închid: umbra rămâne grafică */
+    const slope = 1 - Math.min(1, Math.max(0, nor.getY(i)));
+    if (slope > .45) _c.lerp(shade, Math.min(.5, (slope - .45) * 1.1));
+    col.setXYZ(i, _c.r, _c.g, _c.b);
+  }
+  col.needsUpdate = true;
+  sceneFog.color.set(night ? "#04080a" : "#dfe3d4");
+  hemi.color.set(night ? "#25333c" : "#e8eef2");
+  hemi.groundColor.set(night ? "#010304" : "#66735e");
+  hemi.intensity = night ? .7 : .82;
+  sun.color.set(night ? "#cfe0f2" : "#fff8ea");
+  sun.intensity = night ? .6 : .9;
+  fill.color.set(night ? "#40566a" : "#c6d6e0");
+  fill.intensity = night ? .25 : .35;
+}
+
+
+function glowTexture() {
+  const c = document.createElement("canvas");
+  c.width = c.height = 128;
+  const g = c.getContext("2d");
+  const grd = g.createRadialGradient(64, 64, 0, 64, 64, 64);
+  grd.addColorStop(0, "rgba(255,255,255,1)");
+  grd.addColorStop(.3, "rgba(255,255,255,.4)");
+  grd.addColorStop(1, "rgba(255,255,255,0)");
+  g.fillStyle = grd; g.fillRect(0, 0, 128, 128);
+  return new THREE.CanvasTexture(c);
+}
+
+function buildDot() {
+  const red = "#e8321c";
+  dot = new THREE.Mesh(new THREE.SphereGeometry(2.4, 18, 14),
+    new THREE.MeshBasicMaterial({ color: red }));
+  scene.add(dot);
+  dotGlow = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: glowTexture(), color: red, transparent: true, opacity: .75, depthWrite: false
+  }));
+  dotGlow.scale.setScalar(22);
+  scene.add(dotGlow);
+  dotLight = new THREE.PointLight(red, 2.2, 110, 2);
+  scene.add(dotLight);
+
+  /* urma: un tub subțire, construit o dată. Nu îl dezvăluim prin
+     drawRange, ci prin transparență per vârf: capul e plin, coada
+     se stinge lin până la zero, ca un fir de fum în urma pașilor. */
+  const tube = new THREE.TubeGeometry(walk, TRAIL_RINGS, .55, 6, true);
+  const rings = TRAIL_RINGS + 1, perRing = 7;
+  trailAlpha = new Float32Array(rings * perRing * 4);
+  const rc = new THREE.Color(red);
+  for (let i = 0; i < rings * perRing; i++) {
+    trailAlpha[i * 4] = rc.r; trailAlpha[i * 4 + 1] = rc.g;
+    trailAlpha[i * 4 + 2] = rc.b; trailAlpha[i * 4 + 3] = 0;
+  }
+  tube.setAttribute("color", new THREE.BufferAttribute(trailAlpha, 4));
+  trail = new THREE.Mesh(tube, new THREE.MeshBasicMaterial({
+    vertexColors: true, transparent: true, depthWrite: false
+  }));
+  scene.add(trail);
+}
+
+/* unde vrem punctul pe ecran: stânga-jos, ferit de butonul de emisie */
+const FRAME = { nx: -0.44, ny: -0.42 };
+function advance(dt, now) {
+  progress = (progress + (SPEED * dt) / walkLen) % 1;
+  walk.getPointAt(progress, _p);
+  _p.y = heightAt(_p.x, _p.z) + 2.6;
+
+  const breathe = .5 + .5 * Math.sin(now * .0035);
+  dot.position.copy(_p);
+  dot.scale.setScalar(1 + breathe * .14);
+  dotGlow.position.copy(_p);
+  dotLight.position.set(_p.x, _p.y + 8, _p.z);
+  /* coada care se stinge */
+  if (trailAlpha) {
+  const head = progress * TRAIL_RINGS;
+  for (let i = 0; i <= TRAIL_RINGS; i++) {
+    let back = head - i;
+    if (back < 0) back += TRAIL_RINGS;
+    let a = back <= TRAIL_TAIL ? 1 - back / TRAIL_TAIL : 0;
+    a = a * a * .9;                       /* stingere lină, nu liniară */
+    const base = i * 7 * 4;
+    for (let j = 0; j < 7; j++) trailAlpha[base + j * 4 + 3] = a;
+  }
+  trail.geometry.attributes.color.needsUpdate = true;
+  }
+
+  /* direcția de mers, orizontală */
+  walk.getTangentAt(progress, _tan);
+  _tan.y = 0; _tan.normalize();
+  _right.crossVectors(_tan, UP).normalize();
+
+  /* camera: în urmă, sus, puțin lateral. Unghi oblic, ca relieful
+     să se vadă în adâncime, până la orizont. */
+  camGoal.copy(_p)
+    .addScaledVector(_tan, -205)
+    .addScaledVector(_right, -48);
+  camGoal.y = Math.max(_p.y + 155, heightAt(camGoal.x, camGoal.z) + 95);
+  camera.position.lerp(camGoal, 1 - Math.exp(-dt * 1.15));
+
+  /* privirea stă pe punct; netezimea vine din deplasarea camerei */
+  aimNow.copy(_p);
+  camera.lookAt(aimNow);
+
+  /* apoi camera se abate cu unghiuri calculate din câmpul vizual,
+     ca punctul să cadă exact în colțul dorit: astfel butonul de
+     emisie rămâne mereu peste creste libere */
+  const tanY = Math.tan(camera.fov * Math.PI / 360);
+  const tanX = tanY * camera.aspect;
+  camera.rotateY(Math.atan(FRAME.nx * tanX));
+  camera.rotateX(-Math.atan(FRAME.ny * tanY));
+
+  sun.position.set(_p.x + 260, 340, _p.z - 150);
+  sun.target.position.copy(_p);
+  sun.target.updateMatrixWorld();
+}
+
+function audioPulse() {
+  let level = 0;
+  if (document.body.classList.contains("playing-now") && analyser && freq) {
+    analyser.getByteFrequencyData(freq);
+    for (let i = 0; i < freq.length; i++) level += freq[i];
+    level /= freq.length * 255;
+  }
+  dotLight.intensity = 2.6 + level * 4;
+  dotGlow.scale.setScalar(22 + level * 14);
+}
+
+function initScene() {
+  try {
+    renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: "high-performance" });
+  } catch (e) { return fallback2D(); }
+  if (!renderer.getContext()) return fallback2D();
+  renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 1.6));
+
+  scene = new THREE.Scene();
+  sceneFog = new THREE.Fog("#dfe3d4", 380, 1250);
+  scene.fog = sceneFog;
+  camera = new THREE.PerspectiveCamera(58, 1, 1, 2400);
+
+  hemi = new THREE.HemisphereLight("#eaf1f6", "#5c6a58", 1.0);
+  scene.add(hemi);
+  sun = new THREE.DirectionalLight("#fff6e6", 1.35);
+  sun.position.set(260, 340, -150);
+  scene.add(sun);
+  scene.add(sun.target);
+  fill = new THREE.DirectionalLight("#cfe0ea", .5);   /* contra-lumină rece */
+  fill.position.set(-220, 120, 240);
+  scene.add(fill);
+
+  buildWalk();
+  buildTerrain();
+  buildDot();
+  terrainRetint(document.documentElement.dataset.mode === "night");
+
+  walk.getPointAt(0, _p);
+  camera.position.set(_p.x - 80, _p.y + 90, _p.z + 80);
+  aimNow.copy(_p);
+  camera.lookAt(aimNow);
+
+  sizeScene();
+  window.addEventListener("resize", sizeScene);
+
+  if (reducedMotion) { advance(0, 0); renderer.render(scene, camera); return; }
+  requestAnimationFrame(frame);
+}
+
+function sizeScene() {
+  if (!renderer) return;
+  const w = canvas.clientWidth || 1, h = canvas.clientHeight || 1;
+  renderer.setSize(w, h, false);
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+  if (reducedMotion) renderer.render(scene, camera);
+}
+
+function frame(now) {
+  requestAnimationFrame(frame);
+  if (document.hidden) return;
+  if (typeof openSheet !== "undefined" && openSheet) return;
+  if (!lastFrame) lastFrame = now;
+  if (now - lastFrame < 32) return;
+  const dt = Math.min(.1, (now - lastFrame) / 1000);
+  lastFrame = now;
+  advance(dt, now);
+  audioPulse();
+  renderer.render(scene, camera);
+}
+
+function fallback2D() {
+  renderer = null;
+  const ctx2 = canvas.getContext("2d");
+  if (!ctx2) return;
+  function draw() {
+    const w = canvas.width = canvas.clientWidth, h = canvas.height = canvas.clientHeight;
+    ctx2.clearRect(0, 0, w, h);
+    const cs = getComputedStyle(document.documentElement);
+    [["--ridge-far", .70, .20], ["--ridge-mid", .82, .18], ["--ridge-near", .96, .16]]
+      .forEach(([tok, base, amp], li) => {
+        ctx2.beginPath(); ctx2.moveTo(0, h);
+        for (let i = 0; i <= 80; i++) {
+          const fr = i / 80;
+          ctx2.lineTo(fr * w, h * base - h * amp * fbm(fr * 5 + li * 9, li * 3, 4));
+        }
+        ctx2.lineTo(w, h); ctx2.closePath();
+        ctx2.fillStyle = cs.getPropertyValue(tok);
+        ctx2.fill();
+      });
+  }
+  draw();
+  window.addEventListener("resize", draw);
+  window.terrainRetintFallback = draw;
+}
+
+initScene();
+
+
+
+
+/* ============================================================
+   FOILE
+   ============================================================ */
+let openSheet = null;
+let lastTrigger = null;
+document.querySelectorAll("[data-sheet]").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const sheet = document.getElementById(btn.dataset.sheet);
+    if (!sheet) return;
+    lastTrigger = btn;
+    openSheet = sheet;
+    sheet.classList.add("open");
+    sheet.querySelector("[data-close]").focus();
+  });
+});
+function closeSheet() {
+  if (!openSheet) return;
+  openSheet.classList.remove("open");
+  openSheet = null;
+  if (lastTrigger) { lastTrigger.focus(); lastTrigger = null; }
+}
+document.querySelectorAll("[data-close]").forEach(b => b.addEventListener("click", closeSheet));
+window.addEventListener("keydown", e => { if (e.key === "Escape") closeSheet(); });
+
+/* ---------- arhiva: carduri + episoade din RSS ---------- */
+const feedsEl = document.getElementById("feeds");
+const epsEl = document.getElementById("episodes");
+const noteEl = document.getElementById("arhiva-note");
+
+for (const f of CONFIG.feeds) {
+  const li = document.createElement("li");
+  li.className = "feed";
+  li.innerHTML = "<h3>" + escapeHtml(f.name) + "</h3>" +
+    "<p class=\"tagline\">" + escapeHtml(f.tagline) + "</p>" +
+    (f.url
+      ? "<a href=\"" + escapeHtml(f.url) + "\" rel=\"noopener\">Flux podcast</a>"
+      : "<span class=\"coming\">Flux în pregătire</span>");
+  feedsEl.appendChild(li);
+}
+
+function feedFetchUrl(feedUrl) {
+  if (!CONFIG.rssProxyPath) return feedUrl;
+  const separator = CONFIG.rssProxyPath.includes("?") ? "&" : "?";
+  return CONFIG.rssProxyPath + separator + "url=" + encodeURIComponent(feedUrl);
+}
+
+async function loadEpisodes() {
+  const all = CONFIG.demoEpisodes.map(ep => ({ ...ep, date: new Date(ep.date) }));
+  await Promise.all(CONFIG.feeds.filter(f => f.url).map(async f => {
+    try {
+      const r = await fetch(feedFetchUrl(f.url), { cache: "no-store" });
+      if (!r.ok) return;
+      const xml = new DOMParser().parseFromString(await r.text(), "application/xml");
+      if (xml.querySelector("parsererror")) return;
+      xml.querySelectorAll("item").forEach(item => {
+        const enc = item.querySelector("enclosure");
+        all.push({
+          show: f.name,
+          title: item.querySelector("title")?.textContent?.trim() || "Episod",
+          date: new Date(item.querySelector("pubDate")?.textContent || 0),
+          audio: enc ? enc.getAttribute("url") : null
+        });
+      });
+    } catch (e) { /* un feed căzut nu oprește arhiva */ }
+  }));
+  all.sort((a, b) => b.date - a.date);
+  const top = all.slice(0, CONFIG.maxEpisodes);
+  if (!top.length) {
+    noteEl.textContent = "Episoadele nu au putut fi încărcate aici. Le găsiți direct în fluxurile fiecărei emisiuni, mai sus.";
+    return;
+  }
+  noteEl.classList.add("hidden");
+  const fmt = new Intl.DateTimeFormat("ro-RO", { day: "numeric", month: "long" });
+  for (const ep of top) {
+    const li = document.createElement("li");
+    li.innerHTML =
+      '<button class="ep-play" type="button">' +
+        '<svg class="icon-play" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15l13-7.5z"/></svg>' +
+        '<svg class="icon-pause" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M6 4h4.5v16H6zM13.5 4H18v16h-4.5z"/></svg>' +
+      "</button>" +
+      '<span><span class="ep-title">' + escapeHtml(ep.title) + '</span>' +
+      '<span class="ep-meta">' + escapeHtml(ep.show) + "</span></span>" +
+      '<span class="ep-date">' + (isNaN(ep.date) ? "" : fmt.format(ep.date)) + "</span>";
+    const episodeButton = li.querySelector("button");
+    episodeButton.setAttribute("aria-label", "Ascultă: " + ep.title);
+    episodeButton.addEventListener("click", async () => {
+      hideMsg();
+      if (!ep.audio) { showMsg("Acest episod nu are fișier audio atașat în flux."); return; }
+      if (li === currentEpLi && document.body.classList.contains("is-ep")) {
+        if (audio.paused) audio.play().catch(() => {}); else audio.pause();
+        return;
+      }
+      try {
+        audio.pause();
+        audio.src = ep.audio;
+        await audio.play();
+        setState("ep", { title: ep.title, show: ep.show, li });
+        startVisualizer();
+      } catch (e) {
+        setState("off");
+        showMsg("Episodul nu a putut fi redat aici. Îl găsiți în fluxul podcast al emisiunii.");
+      }
+    });
+    epsEl.appendChild(li);
+  }
+}
+loadEpisodes();
+
+applyClock();
+setInterval(applyClock, 30000);
+
+/* ============================================================
+   PWA — instalare pe ecranul principal
+   ============================================================ */
+const isStandalone = window.matchMedia("(display-mode: standalone)").matches
+  || window.navigator.standalone === true;
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("sw.js").catch(() => {
+      /* eșecul înregistrării nu afectează ascultarea live */
+    });
+  });
+}
+
+const installBtn = document.getElementById("install-btn");
+let deferredInstall = null;
+window.addEventListener("beforeinstallprompt", (e) => {
+  e.preventDefault();
+  if (isStandalone) return;
+  deferredInstall = e;
+  installBtn.classList.add("show");
+});
+installBtn.addEventListener("click", async () => {
+  if (!deferredInstall) return;
+  installBtn.disabled = true;
+  deferredInstall.prompt();
+  await deferredInstall.userChoice.catch(() => {});
+  deferredInstall = null;
+  installBtn.classList.remove("show");
+  installBtn.disabled = false;
+});
+window.addEventListener("appinstalled", () => {
+  installBtn.classList.remove("show");
+  deferredInstall = null;
+});
+
+const iosHint = document.getElementById("ios-hint");
+const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent)
+  || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+if (isIOS && !isStandalone && !localStorage.getItem("ra-ios-hint-dismissed")) {
+  setTimeout(() => iosHint.classList.add("show"), 1200);
+}
+document.getElementById("ios-hint-dismiss").addEventListener("click", () => {
+  iosHint.classList.remove("show");
+  try { localStorage.setItem("ra-ios-hint-dismissed", "1"); } catch (e) { /* mod privat: ignorăm */ }
+});
+
+/* comanda rapidă „Ascultă live" (?action=play): nu pornim redarea
+   automat (browserele o blochează fără o atingere directă); discul e
+   deja în centrul scenei, doar îl pregătim pentru o singură apăsare */
+if (new URLSearchParams(location.search).get("action") === "play") {
+  playBtn.focus({ preventScroll: true });
+}
+</script>
+</body>
+</html>

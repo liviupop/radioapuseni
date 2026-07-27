@@ -1,0 +1,35 @@
+{
+  "name": "Radio Apuseni",
+  "short_name": "Apuseni",
+  "description": "Vocea patrimoniului viu al Munților Apuseni: ascultă live, urmăriți programul zilei și arhiva emisiunilor.",
+  "id": "/",
+  "start_url": "/?utm_source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui", "browser"],
+  "orientation": "portrait-primary",
+  "background_color": "#edefe6",
+  "theme_color": "#101913",
+  "lang": "ro",
+  "dir": "ltr",
+  "categories": ["music", "news", "lifestyle"],
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    {
+      "name": "Ascultă live",
+      "short_name": "Live",
+      "url": "/?action=play",
+      "description": "Deschide aplicația direct pe butonul de emisie live"
+    },
+    {
+      "name": "Arhivă",
+      "short_name": "Arhivă",
+      "url": "/#arhiva",
+      "description": "Episoadele recente ale emisiunilor"
+    }
+  ]
+}

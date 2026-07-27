@@ -1,0 +1,9 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "radio-apuseni",
+  "pages_build_output_dir": "./site",
+  "compatibility_date": "2026-07-23",
+  "vars": {
+    "AZURACAST_HOST": "stream.radioapuseni.ro"
+  }
+}

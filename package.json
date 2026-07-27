@@ -1,0 +1,13 @@
+{
+  "name": "radio-apuseni",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Site-ul public și integrarea Cloudflare Pages pentru Radio Apuseni.",
+  "scripts": {
+    "dev": "wrangler pages dev site",
+    "deploy": "wrangler pages deploy site --project-name radio-apuseni"
+  },
+  "devDependencies": {
+    "wrangler": "^4.114.0"
+  }
+}

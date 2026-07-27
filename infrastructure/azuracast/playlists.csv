@@ -1,0 +1,11 @@
+playlist,rol,tip,prioritate,program,ordine,continut_initial
+Glasul Locului,emisiune principală,programat,20,Luni 09:00-10:00 și 20:00-21:00,secvențial,episoade proprii
+Jurnal de Teren,emisiune principală,programat,20,Marți 09:00-10:00 și 20:00-21:00,secvențial,episoade proprii
+Peisajul Viu,emisiune principală,programat,20,Miercuri 09:00-10:00 și 20:00-21:00,secvențial,episoade proprii
+Custodes,emisiune principală,programat,20,Joi 09:00-10:00 și 20:00-21:00,secvențial,episoade proprii
+Glasul Pădurii,emisiune principală,programat,20,Vineri 09:00-10:00 și 20:00-21:00,secvențial,episoade proprii
+Povestea de seară,încheierea zilei,programat,30,Zilnic 21:45-22:00,secvențial,povești de 5-10 minute
+Noaptea Apusenilor,peisaj sonor nocturn,programat,15,Zilnic 22:00-08:00,aleatoriu,ambient autentic și liniște de cameră
+Vocea Milenei - deschidere,identitate sonoră,programat,40,Zilnic 08:00,secvențial,mesaj de deschidere
+Vocea Milenei - legături,tranziții,la fiecare X piese,10,Între programe,aleatoriu,intervenții scurte
+Rotație generală,fallback,rotație generală,0,În afara sloturilor,aleatoriu,ambient și reluări
