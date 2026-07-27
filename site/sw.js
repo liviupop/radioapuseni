@@ -4,7 +4,7 @@
    podcast/episoadele audio — acelea sunt fie live, fie stau pe alt domeniu
    (serverul AzuraCast), și trebuie cerute mereu proaspăt din rețea. */
 
-const SHELL_CACHE = "radio-apuseni-shell-v17";
+const SHELL_CACHE = "radio-apuseni-shell-v18";
 
 const SHELL_ASSETS = [
   "./",
@@ -13,12 +13,14 @@ const SHELL_ASSETS = [
   "./licente.html",
   "./manifest.json",
   "./vendor/three.min.js",
+  "./assets/logo-radio-apuseni.svg",
   "./assets/radio-apuseni-editorial.webp",
-  "./icons/icon-192.png",
-  "./icons/icon-512.png",
-  "./icons/icon-maskable-512.png",
-  "./icons/apple-touch-icon.png",
-  "./icons/favicon-32.png"
+  "./icons/radio-apuseni-192.png",
+  "./icons/radio-apuseni-512.png",
+  "./icons/radio-apuseni-maskable-512.png",
+  "./icons/apple-touch-radio-apuseni.png",
+  "./icons/favicon-radio-apuseni-16.png",
+  "./icons/favicon-radio-apuseni-32.png"
 ];
 
 self.addEventListener("install", (event) => {

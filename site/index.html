@@ -18,14 +18,15 @@
 <meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;1,9..144,400&amp;family=Figtree:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bitter:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&amp;display=swap" rel="stylesheet">
 
 <!-- PWA -->
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#101913" id="meta-theme">
-<link rel="icon" href="icons/favicon-32.png" sizes="32x32" type="image/png">
-<link rel="icon" href="icons/icon-192.png" sizes="192x192" type="image/png">
-<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" href="icons/favicon-radio-apuseni-16.png" sizes="16x16" type="image/png">
+<link rel="icon" href="icons/favicon-radio-apuseni-32.png" sizes="32x32" type="image/png">
+<link rel="icon" href="icons/radio-apuseni-192.png" sizes="192x192" type="image/png">
+<link rel="apple-touch-icon" href="icons/apple-touch-radio-apuseni.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Apuseni">
@@ -59,8 +60,8 @@
   --scrim-top: rgba(238,240,231,.72);
   --disc-glow: rgba(217,164,65,.40);
 
-  --font-display: "Fraunces", Georgia, "Times New Roman", serif;
-  --font-body: "Figtree", "Segoe UI", system-ui, sans-serif;
+  --font-display: "Bitter", serif;
+  --font-body: "Bitter", serif;
 
   --text-xs: 0.75rem;   --leading-xs: 1.5;
   --text-sm: 0.875rem;  --leading-sm: 1.6;
@@ -103,6 +104,7 @@ html[data-mode="night"] {
 
 * { box-sizing: border-box; }
 html, body { height: 100%; }
+button, input, select, textarea { font: inherit; }
 body {
   margin: 0; overflow: hidden;
   background: linear-gradient(var(--color-sky-hi), var(--color-sky-lo));
@@ -282,11 +284,17 @@ body.is-ep.playing-now .disc .icon-pause { display: block; }
   display: flex; align-items: center; gap: var(--space-2);
   text-decoration: none;
 }
-.brand img { width: 34px; height: 34px; border-radius: 8px; display: block; }
+.brand-mark {
+  width: 38px; height: 38px; flex: none;
+  display: block;
+  background: currentColor;
+  -webkit-mask: url("assets/logo-radio-apuseni.svg") center / contain no-repeat;
+  mask: url("assets/logo-radio-apuseni.svg") center / contain no-repeat;
+}
 .brand span {
-  font-family: var(--font-display); font-weight: 500;
-  font-size: var(--text-xs); letter-spacing: .2em; text-transform: uppercase;
-  line-height: 1.25;
+  font-family: var(--font-display); font-weight: 600;
+  font-size: var(--text-xs); letter-spacing: .14em; text-transform: uppercase;
+  line-height: 1.2;
 }
 .bottombar nav { display: flex; gap: var(--space-1); }
 .bottombar .icon-btn { color: var(--color-text); }
@@ -545,7 +553,7 @@ li.playing.playing-now .ep-play .icon-pause { display: block; }
 
   <div class="bottombar">
     <a class="brand" href="/" aria-label="Radio Apuseni — pagina principală">
-      <img src="icons/icon-192.png" alt="" width="34" height="34">
+      <span class="brand-mark" aria-hidden="true"></span>
       <span>Radio<br>Apuseni</span>
     </a>
     <nav aria-label="Secțiuni">
@@ -759,8 +767,8 @@ function updateMediaSession() {
       artist: "Radio Apuseni",
       album: isLive ? "Emisie live" : (currentEp?.show || "Arhivă"),
       artwork: [
-        { src: "icons/icon-192.png", sizes: "192x192", type: "image/png" },
-        { src: "icons/icon-512.png", sizes: "512x512", type: "image/png" }
+        { src: "icons/radio-apuseni-192.png", sizes: "192x192", type: "image/png" },
+        { src: "icons/radio-apuseni-512.png", sizes: "512x512", type: "image/png" }
       ]
     });
     navigator.mediaSession.playbackState = audio.paused ? "paused" : "playing";

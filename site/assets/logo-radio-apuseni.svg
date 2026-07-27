@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title">
+  <title id="title">Radio Apuseni — cadran radio și creastă montană</title>
+  <g fill="none" stroke="#000" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="32" cy="32" r="27.5" stroke-width="4"/>
+    <path d="M12 40.5c6.5-2.2 8.2-9 13.8-6.2 4.8 2.4 6.1-7.4 12.4-6.3 6.6 1.1 7.3 9.3 13.8 11.8" stroke-width="4"/>
+    <path d="M32 42 48.5 24.5" stroke-width="3.5"/>
+    <circle cx="32" cy="42" r="3.25" fill="#000" stroke="none"/>
+    <path d="M20.5 15.5 23 19M32 12.5V17M43.5 15.5 41 19" stroke-width="3.5"/>
+  </g>
+</svg>
