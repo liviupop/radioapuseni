@@ -954,17 +954,29 @@ const WAY = [
   [-370, -20], [-330, 210]
 ];
 const MEADOWS = [
-  { x: -332, z: 172, rx: 58, rz: 38 },
-  { x: -205, z: 145, rx: 76, rz: 46 },
-  { x: 28, z: 30, rx: 72, rz: 54 },
-  { x: -205, z: -118, rx: 82, rz: 48 }
+  { x: -350, z: 165, rx: 78, rz: 50 },
+  { x: -205, z: 145, rx: 82, rz: 49 },
+  { x: 28, z: 28, rx: 105, rz: 72 },
+  { x: -205, z: -105, rx: 92, rz: 58 },
+  { x: -82, z: -52, rx: 94, rz: 68 }
+];
+/* Poienile sunt insule de iarbă în interiorul masivelor împădurite.
+   buildForests() le tratează ca zone protejate: aici nu apare niciun brad. */
+const CLEARINGS = [
+  { x: -112, z: 222, rx: 31, rz: 22 },
+  { x: -320, z: 94, rx: 34, rz: 24 },
+  { x: -312, z: -162, rx: 32, rz: 23 }
 ];
 const FOREST_ZONES = [
-  { x: -335, z: 165, r: 66, seed: 5 },
-  { x: -292, z: 115, r: 92, seed: 11 },
-  { x: -18, z: -40, r: 104, seed: 29 },
-  { x: -285, z: -82, r: 88, seed: 47 },
-  { x: -92, z: 172, r: 66, seed: 71 }
+  { x: -205, z: 225, rx: 61, rz: 45, seed: 5 },
+  { x: -94, z: 221, rx: 56, rz: 44, seed: 11 },
+  { x: -255, z: 126, rx: 55, rz: 43, seed: 19 },
+  { x: -56, z: 132, rx: 61, rz: 46, seed: 29 },
+  { x: 48, z: 126, rx: 52, rz: 40, seed: 37 },
+  { x: -398, z: 72, rx: 58, rz: 48, seed: 47 },
+  { x: -352, z: -150, rx: 64, rz: 47, seed: 59 },
+  { x: -286, z: -184, rx: 57, rz: 42, seed: 71 },
+  { x: 16, z: -142, rx: 60, rz: 45, seed: 83 }
 ];
 const STREAM_CROSSINGS = [
   { at: .008, reach: 125, width: 2.25 },
@@ -1026,7 +1038,7 @@ const BANDS = {
 };
 function meadowInfluence(x, z) {
   let strength = 0;
-  for (const meadow of MEADOWS) {
+  for (const meadow of MEADOWS.concat(CLEARINGS)) {
     const dx = (x - meadow.x) / meadow.rx;
     const dz = (z - meadow.z) / meadow.rz;
     const d = Math.sqrt(dx * dx + dz * dz);
@@ -1036,6 +1048,17 @@ function meadowInfluence(x, z) {
     }
   }
   return strength;
+}
+function insideClearing(x, z) {
+  return CLEARINGS.some(clearing => {
+    const dx = (x - clearing.x) / clearing.rx;
+    const dz = (z - clearing.z) / clearing.rz;
+    return dx * dx + dz * dz < 1;
+  });
+}
+function lowlandInfluence(y, slope) {
+  if (slope >= .38) return 0;
+  return Math.max(0, Math.min(1, (34 - y) / 18));
 }
 function terrainRetint(night) {
   if (!renderer || night === nightNow) return;
@@ -1052,8 +1075,10 @@ function terrainRetint(night) {
     /* doar fețele foarte abrupte se închid: umbra rămâne grafică */
     const slope = 1 - Math.min(1, Math.max(0, nor.getY(i)));
     if (slope > .45) _c.lerp(shade, Math.min(.5, (slope - .45) * 1.1));
-    const meadow = slope < .34 ? meadowInfluence(pos.getX(i), pos.getZ(i)) : 0;
-    if (meadow > 0) _c.lerp(meadowTone, .16 + meadow * .36);
+    const meadow = slope < .38 ? meadowInfluence(pos.getX(i), pos.getZ(i)) : 0;
+    const lowland = lowlandInfluence(pos.getY(i), slope);
+    const grassland = Math.max(meadow, lowland * .88);
+    if (grassland > 0) _c.lerp(meadowTone, .22 + grassland * .48);
     col.setXYZ(i, _c.r, _c.g, _c.b);
   }
   col.needsUpdate = true;
@@ -1108,24 +1133,31 @@ function distanceToWalk(x, z) {
 }
 
 function buildForests() {
-  const targetCount = innerWidth < 820 ? 105 : 185;
+  const targetCount = innerWidth < 820 ? 220 : 360;
   const placements = [];
-  for (let i = 0; i < targetCount * 7 && placements.length < targetCount; i++) {
+  for (let i = 0; i < targetCount * 14 && placements.length < targetCount; i++) {
     const zone = FOREST_ZONES[i % FOREST_ZONES.length];
-    const radial = Math.sqrt(hash2(zone.seed * 97 + i, i * 37 + 5)) * zone.r;
+    /* Mai multă greutate spre miezul pâlcului, pentru siluete compacte. */
+    const radial = Math.pow(hash2(zone.seed * 97 + i, i * 37 + 5), .78);
     const angle = hash2(i * 61 + 7, zone.seed * 113 + i) * Math.PI * 2;
-    const x = zone.x + Math.cos(angle) * radial;
-    const z = zone.z + Math.sin(angle) * radial;
+    const x = zone.x + Math.cos(angle) * radial * zone.rx;
+    const z = zone.z + Math.sin(angle) * radial * zone.rz;
     if (Math.abs(x) > T.size * .47 || Math.abs(z) > T.size * .47) continue;
-    if (distanceToWalk(x, z) < 10 || terrainSlope(x, z) > 1.15) continue;
-    const scale = .72 + hash2(i * 19 + 3, zone.seed * 43) * .72;
-    placements.push({ x, z, y: heightAt(x, z) + 1.65, scale, angle });
+    const y = heightAt(x, z);
+    const slope = terrainSlope(x, z);
+    /* Văile și poienile rămân exclusiv pajiști. */
+    if (y < 23 || insideClearing(x, z) || meadowInfluence(x, z) > .055) continue;
+    if (distanceToWalk(x, z) < 8 || slope > 1.08) continue;
+    const scale = .68 + hash2(i * 19 + 3, zone.seed * 43) * .72;
+    placements.push({ x, z, y: y + .06, scale, angle });
   }
 
   const trunkGeo = new THREE.CylinderGeometry(.34, .52, 2.4, 5);
-  const pineGeo = new THREE.ConeGeometry(2.35, 6.2, 7);
+  const lowerCrownGeo = new THREE.ConeGeometry(2.55, 6.5, 7);
+  const upperCrownGeo = new THREE.ConeGeometry(1.76, 4.9, 7);
   const trunks = new THREE.InstancedMesh(trunkGeo, landscapeMaterials.trunk, placements.length);
-  const pines = new THREE.InstancedMesh(pineGeo, landscapeMaterials.pine, placements.length);
+  const lowerCrowns = new THREE.InstancedMesh(lowerCrownGeo, landscapeMaterials.pine, placements.length);
+  const upperCrowns = new THREE.InstancedMesh(upperCrownGeo, landscapeMaterials.pine, placements.length);
   const dummy = new THREE.Object3D();
 
   placements.forEach((tree, i) => {
@@ -1136,26 +1168,34 @@ function buildForests() {
     dummy.updateMatrix();
     trunks.setMatrixAt(i, dummy.matrix);
 
-    const crownH = 5.7 * tree.scale;
-    dummy.position.set(tree.x, tree.y + trunkH + crownH * .43, tree.z);
+    dummy.position.set(tree.x, tree.y + trunkH + 2.45 * tree.scale, tree.z);
     dummy.rotation.set(0, tree.angle, 0);
     dummy.scale.set(tree.scale, tree.scale, tree.scale);
     dummy.updateMatrix();
-    pines.setMatrixAt(i, dummy.matrix);
+    lowerCrowns.setMatrixAt(i, dummy.matrix);
+
+    dummy.position.set(tree.x, tree.y + trunkH + 5.15 * tree.scale, tree.z);
+    dummy.rotation.set(0, tree.angle + .18, 0);
+    dummy.scale.set(tree.scale, tree.scale, tree.scale);
+    dummy.updateMatrix();
+    upperCrowns.setMatrixAt(i, dummy.matrix);
   });
 
   trunks.instanceMatrix.needsUpdate = true;
-  pines.instanceMatrix.needsUpdate = true;
+  lowerCrowns.instanceMatrix.needsUpdate = true;
+  upperCrowns.instanceMatrix.needsUpdate = true;
   trunks.frustumCulled = false;
-  pines.frustumCulled = false;
-  scene.add(trunks, pines);
+  lowerCrowns.frustumCulled = false;
+  upperCrowns.frustumCulled = false;
+  scene.add(trunks, lowerCrowns, upperCrowns);
 }
 
 function buildMeadowTufts() {
-  const targetCount = innerWidth < 820 ? 56 : 96;
+  const grassZones = MEADOWS.concat(CLEARINGS);
+  const targetCount = innerWidth < 820 ? 110 : 190;
   const placements = [];
   for (let i = 0; i < targetCount * 5 && placements.length < targetCount; i++) {
-    const meadow = MEADOWS[i % MEADOWS.length];
+    const meadow = grassZones[i % grassZones.length];
     const angle = hash2(i * 41 + 13, i * 79 + 17) * Math.PI * 2;
     const radius = Math.sqrt(hash2(i * 97 + 19, i * 53 + 23));
     const x = meadow.x + Math.cos(angle) * radius * meadow.rx * .82;
@@ -1169,7 +1209,7 @@ function buildMeadowTufts() {
   const tufts = new THREE.InstancedMesh(tuftGeo, landscapeMaterials.grass, placements.length);
   const dummy = new THREE.Object3D();
   placements.forEach((tuft, i) => {
-    dummy.position.set(tuft.x, heightAt(tuft.x, tuft.z) + 2.05, tuft.z);
+    dummy.position.set(tuft.x, heightAt(tuft.x, tuft.z) + .68 * tuft.scale, tuft.z);
     dummy.rotation.set(0, tuft.angle, 0);
     dummy.scale.set(tuft.scale, tuft.scale, tuft.scale);
     dummy.updateMatrix();
