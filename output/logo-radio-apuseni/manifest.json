@@ -1,10 +1,10 @@
 {
-  "name": "Radio Apuseni — Frecvență vie",
-  "version": "1.0",
+  "name": "Radio Apuseni — Cadran și creastă",
+  "version": "1.1",
   "selectedBoardItem": {
     "boardId": "3f7f6cf2-cc06-448e-a584-2575d43aed9c",
-    "itemId": "heritage-frequency",
-    "title": "Frecvență vie"
+    "itemId": "radio-dial-ridge",
+    "title": "Cadran și creastă"
   },
   "palette": {
     "ink": "#101913",

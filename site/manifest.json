@@ -14,9 +14,9 @@
   "dir": "ltr",
   "categories": ["education", "lifestyle"],
   "icons": [
-    { "src": "icons/radio-apuseni-frequency-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "icons/radio-apuseni-frequency-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "icons/radio-apuseni-frequency-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    { "src": "icons/radio-apuseni-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/radio-apuseni-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/radio-apuseni-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ],
   "shortcuts": [
     {
