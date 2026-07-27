@@ -1,0 +1,24 @@
+{
+  "name": "Radio Apuseni — Frecvență vie",
+  "version": "1.0",
+  "selectedBoardItem": {
+    "boardId": "3f7f6cf2-cc06-448e-a584-2575d43aed9c",
+    "itemId": "heritage-frequency",
+    "title": "Frecvență vie"
+  },
+  "palette": {
+    "ink": "#101913",
+    "background": "#EEF0E7"
+  },
+  "typography": "Bitter",
+  "exports": [
+    { "path": "radio-apuseni-logo.svg", "role": "primary vector mark" },
+    { "path": "favicon-16.png", "size": "16x16" },
+    { "path": "favicon-32.png", "size": "32x32" },
+    { "path": "icon-192.png", "size": "192x192" },
+    { "path": "icon-512.png", "size": "512x512" },
+    { "path": "icon-maskable-512.png", "size": "512x512", "purpose": "maskable" },
+    { "path": "apple-touch-icon.png", "size": "180x180" },
+    { "path": "concept-source.png", "role": "selected generated concept" }
+  ]
+}
