@@ -1014,7 +1014,7 @@ function terrainRetint(night) {
     hikerMaterials.boot.color.set(night ? "#777d79" : "#202321");
   }
   if (trailAlpha) {
-    const trailTone = new THREE.Color(night ? "#909795" : "#606460");
+    const trailTone = new THREE.Color(night ? "#f05a49" : "#cf3024");
     for (let i = 0; i < trailAlpha.length; i += 4) {
       trailAlpha[i] = trailTone.r;
       trailAlpha[i + 1] = trailTone.g;
@@ -1094,7 +1094,7 @@ function buildHiker() {
   const tube = new THREE.TubeGeometry(walk, TRAIL_RINGS, .16, TRAIL_SIDES, true);
   const rings = TRAIL_RINGS + 1, perRing = TRAIL_SIDES + 1;
   trailAlpha = new Float32Array(rings * perRing * 4);
-  const rc = new THREE.Color("#606460");
+  const rc = new THREE.Color("#cf3024");
   for (let i = 0; i < rings * perRing; i++) {
     trailAlpha[i * 4] = rc.r; trailAlpha[i * 4 + 1] = rc.g;
     trailAlpha[i * 4 + 2] = rc.b; trailAlpha[i * 4 + 3] = 0;
