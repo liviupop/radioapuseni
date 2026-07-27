@@ -43,8 +43,8 @@
    ============================================================ */
 :root {
   /* ZIUA */
-  --color-sky-hi: #eef0e7;
-  --color-sky-lo: #dfe3d4;
+  --color-sky-hi: #f3f0e8;
+  --color-sky-lo: #e5e0d6;
   --color-surface: #f5f6ef;
   --color-line: #cdd2c2;
   --color-text: #1d2b23;
@@ -54,10 +54,10 @@
   --color-accent-ink: #1c1206;
   --color-focus: #6e4a0c;
   --color-danger: #b3391f;
-  --ridge-far: rgba(54,58,56,.14);
-  --ridge-mid: rgba(54,58,56,.30);
-  --ridge-near: rgba(35,39,37,.86);
-  --scrim-top: rgba(238,240,231,.72);
+  --ridge-far: rgba(121,116,106,.14);
+  --ridge-mid: rgba(121,116,106,.30);
+  --ridge-near: rgba(91,87,79,.82);
+  --scrim-top: rgba(243,240,232,.72);
   --disc-glow: rgba(217,164,65,.40);
 
   --font-display: "Montserrat", sans-serif;
@@ -1008,10 +1008,6 @@ const FOREST_ZONES = [
   { x: -286, z: -184, rx: 57, rz: 42, seed: 71 },
   { x: 16, z: -142, rx: 60, rz: 45, seed: 83 }
 ];
-const STREAM_CROSSINGS = [
-  { at: .008, reach: 125, width: 2.25 },
-  { at: .57, reach: 150, width: 1.7 }
-];
 let walk = null, walkLen = 1;
 
 let renderer, scene, camera, terrainGeo, terrainMesh;
@@ -1055,8 +1051,8 @@ function buildTerrain() {
   for (let i = 0; i < pos.count; i++) pos.setY(i, heightAt(pos.getX(i), pos.getZ(i)));
   terrainGeo.computeVertexNormals();
   terrainGeo.setAttribute("color", new THREE.BufferAttribute(new Float32Array(pos.count * 3), 3));
-  terrainMesh = new THREE.Mesh(terrainGeo, new THREE.MeshStandardMaterial({
-    vertexColors: true, roughness: 1, metalness: 0, flatShading: true
+  terrainMesh = new THREE.Mesh(terrainGeo, new THREE.MeshLambertMaterial({
+    vertexColors: true, flatShading: true
   }));
   scene.add(terrainMesh);
 }
@@ -1064,8 +1060,8 @@ function buildTerrain() {
 /* culoarea: cinci trepte de altitudine, ca la hărțile desenate.
    Benzile nete, nu degradeuri, dau registrul de ilustrație. */
 const BANDS = {
-  day:   ["#555a57", "#707572", "#8b908c", "#a9ada8", "#d6d8d3"],
-  night: ["#080b0c", "#111617", "#1b2223", "#2a3334", "#536061"]
+  day:   ["#b8b0a4", "#c4bcb0", "#cfc8bc", "#d9d3c8", "#e3ded4"],
+  night: ["#151615", "#20211f", "#2b2c29", "#383936", "#4a4b47"]
 };
 function meadowInfluence(x, z) {
   let strength = 0;
@@ -1095,8 +1091,8 @@ function terrainRetint(night) {
   if (!renderer || night === nightNow) return;
   nightNow = night;
   const band = (night ? BANDS.night : BANDS.day).map(h => new THREE.Color(h));
-  const shade = new THREE.Color(night ? "#030505" : "#414643");
-  const meadowTone = new THREE.Color(night ? "#26352d" : "#87947a");
+  const shade = new THREE.Color(night ? "#090a09" : "#8f897f");
+  const meadowTone = new THREE.Color(night ? "#30312e" : "#d7d1c5");
   const pos = terrainGeo.attributes.position;
   const nor = terrainGeo.attributes.normal;
   const col = terrainGeo.attributes.color;
@@ -1105,7 +1101,7 @@ function terrainRetint(night) {
     _c.copy(band[Math.floor(t * band.length)]);
     /* doar fețele foarte abrupte se închid: umbra rămâne grafică */
     const slope = 1 - Math.min(1, Math.max(0, nor.getY(i)));
-    if (slope > .45) _c.lerp(shade, Math.min(.5, (slope - .45) * 1.1));
+    if (slope > .45) _c.lerp(shade, Math.min(.34, (slope - .45) * .8));
     const meadow = slope < .38 ? meadowInfluence(pos.getX(i), pos.getZ(i)) : 0;
     const lowland = lowlandInfluence(pos.getY(i), slope);
     const grassland = Math.max(meadow, lowland * .88);
@@ -1113,14 +1109,14 @@ function terrainRetint(night) {
     col.setXYZ(i, _c.r, _c.g, _c.b);
   }
   col.needsUpdate = true;
-  sceneFog.color.set(night ? "#040708" : "#d9dbd6");
-  hemi.color.set(night ? "#293132" : "#eef0ec");
-  hemi.groundColor.set(night ? "#010304" : "#626762");
-  hemi.intensity = night ? .7 : .82;
-  sun.color.set(night ? "#d9dedd" : "#f4f4ef");
-  sun.intensity = night ? .6 : .9;
-  fill.color.set(night ? "#4b5758" : "#bfc5c4");
-  fill.intensity = night ? .25 : .35;
+  sceneFog.color.set(night ? "#101210" : "#ddd7cc");
+  hemi.color.set(night ? "#303330" : "#f4f0e8");
+  hemi.groundColor.set(night ? "#090a09" : "#9d978d");
+  hemi.intensity = night ? .72 : .78;
+  sun.color.set(night ? "#d4d4cf" : "#fffaf0");
+  sun.intensity = night ? .48 : .42;
+  fill.color.set(night ? "#555853" : "#d2cbc0");
+  fill.intensity = night ? .2 : .16;
 
   if (hikerMaterials) {
     hikerMaterials.cloth.color.set(night ? "#e1e3df" : "#171918");
@@ -1129,11 +1125,9 @@ function terrainRetint(night) {
     hikerMaterials.boot.color.set(night ? "#777d79" : "#202321");
   }
   if (landscapeMaterials) {
-    landscapeMaterials.trunk.color.set(night ? "#242824" : "#4d4438");
-    landscapeMaterials.pine.color.set(night ? "#26352f" : "#44584b");
-    landscapeMaterials.grass.color.set(night ? "#425347" : "#68795e");
-    landscapeMaterials.water.color.set(night ? "#6e8790" : "#718d96");
-    landscapeMaterials.wood.color.set(night ? "#8c7963" : "#6f5034");
+    landscapeMaterials.trunk.color.set(night ? "#292a28" : "#b8b1a5");
+    landscapeMaterials.pine.color.set(night ? "#3a3b38" : "#d5d0c6");
+    landscapeMaterials.grass.color.set(night ? "#484945" : "#e1ddd4");
   }
   if (trailAlpha) {
     const trailTone = new THREE.Color(night ? "#f05a49" : "#cf3024");
@@ -1254,114 +1248,20 @@ function buildMeadowTufts() {
   canvas.dataset.clearings = String(CLEARINGS.length);
 }
 
-function streamRibbon(points, width) {
-  const positions = new Float32Array(points.length * 2 * 3);
-  const indices = [];
-  for (let i = 0; i < points.length; i++) {
-    const prev = points[Math.max(0, i - 1)];
-    const next = points[Math.min(points.length - 1, i + 1)];
-    const dx = next.x - prev.x;
-    const dz = next.z - prev.z;
-    const len = Math.max(.001, Math.hypot(dx, dz));
-    const px = -dz / len, pz = dx / len;
-    const half = width * (.78 + .22 * Math.sin(i * .47)) / 2;
-    const leftX = points[i].x + px * half;
-    const leftZ = points[i].z + pz * half;
-    const rightX = points[i].x - px * half;
-    const rightZ = points[i].z - pz * half;
-    const base = i * 6;
-    positions[base] = leftX;
-    positions[base + 1] = heightAt(leftX, leftZ) + 1.85;
-    positions[base + 2] = leftZ;
-    positions[base + 3] = rightX;
-    positions[base + 4] = heightAt(rightX, rightZ) + 1.85;
-    positions[base + 5] = rightZ;
-    if (i < points.length - 1) {
-      const a = i * 2, b = a + 1, c = a + 2, d = a + 3;
-      indices.push(a, c, b, b, c, d);
-    }
-  }
-  const geo = new THREE.BufferGeometry();
-  geo.setAttribute("position", new THREE.BufferAttribute(positions, 3));
-  geo.setIndex(indices);
-  geo.computeVertexNormals();
-  return geo;
-}
-
-function buildLogBridge(center, tangent) {
-  const bridge = new THREE.Group();
-  const deckY = heightAt(center.x, center.z) + 2.65;
-  bridge.position.set(center.x, deckY, center.z);
-  bridge.rotation.y = Math.atan2(tangent.x, tangent.z);
-
-  const logGeo = new THREE.CylinderGeometry(.3, .34, 5.6, 6);
-  for (let i = -5; i <= 5; i++) {
-    const log = new THREE.Mesh(logGeo, landscapeMaterials.wood);
-    log.rotation.z = Math.PI / 2;
-    log.position.set(0, 0, i * .82);
-    bridge.add(log);
-  }
-
-  const beamGeo = new THREE.BoxGeometry(.34, .34, 9.4);
-  [-2.15, 2.15].forEach(x => {
-    const beam = new THREE.Mesh(beamGeo, landscapeMaterials.wood);
-    beam.position.set(x, -.42, 0);
-    bridge.add(beam);
-  });
-
-  const postGeo = new THREE.CylinderGeometry(.16, .2, 1.9, 6);
-  [-2.35, 2.35].forEach(x => {
-    [-3.5, 3.5].forEach(z => {
-      const post = new THREE.Mesh(postGeo, landscapeMaterials.wood);
-      post.position.set(x, .92, z);
-      bridge.add(post);
-    });
-  });
-
-  scene.add(bridge);
-}
-
-function buildStreamsAndBridges() {
-  STREAM_CROSSINGS.forEach((stream, streamIndex) => {
-    const center = walk.getPointAt(stream.at);
-    const tangent = walk.getTangentAt(stream.at);
-    tangent.y = 0;
-    tangent.normalize();
-    const across = new THREE.Vector3().crossVectors(tangent, UP).normalize();
-    const points = [];
-    const samples = innerWidth < 820 ? 54 : 72;
-    for (let i = 0; i < samples; i++) {
-      const offset = (i / (samples - 1) - .5) * stream.reach;
-      const meander = Math.sin(offset * .075 + streamIndex * 1.8) * 5
-        + Math.sin(offset * .031) * 2.5;
-      const x = center.x + across.x * offset + tangent.x * meander;
-      const z = center.z + across.z * offset + tangent.z * meander;
-      points.push(new THREE.Vector3(x, heightAt(x, z) + 1.35, z));
-    }
-    const water = new THREE.Mesh(
-      streamRibbon(points, stream.width),
-      landscapeMaterials.water
-    );
-    water.renderOrder = 1;
-    scene.add(water);
-    buildLogBridge(center, tangent);
-  });
-}
-
 function buildLandscapeDetails() {
   landscapeMaterials = {
-    trunk: new THREE.MeshStandardMaterial({ color: "#4d4438", roughness: 1, flatShading: true }),
-    pine: new THREE.MeshStandardMaterial({ color: "#44584b", roughness: 1, flatShading: true }),
-    grass: new THREE.MeshStandardMaterial({ color: "#68795e", roughness: 1, flatShading: true }),
-    water: new THREE.MeshStandardMaterial({
-      color: "#718d96", roughness: .32, metalness: .05,
-      transparent: true, opacity: .76, depthWrite: false, side: THREE.DoubleSide
+    trunk: new THREE.MeshLambertMaterial({
+      color: "#b8b1a5", flatShading: true
     }),
-    wood: new THREE.MeshStandardMaterial({ color: "#6f5034", roughness: 1, flatShading: true })
+    pine: new THREE.MeshLambertMaterial({
+      color: "#d5d0c6", flatShading: true
+    }),
+    grass: new THREE.MeshLambertMaterial({
+      color: "#e1ddd4", flatShading: true
+    })
   };
   buildForests();
   buildMeadowTufts();
-  buildStreamsAndBridges();
 }
 
 
@@ -1540,17 +1440,17 @@ function initScene() {
   renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 1.6));
 
   scene = new THREE.Scene();
-  sceneFog = new THREE.Fog("#d9dbd6", 380, 1250);
+  sceneFog = new THREE.Fog("#ddd7cc", 380, 1250);
   scene.fog = sceneFog;
   camera = new THREE.PerspectiveCamera(58, 1, 1, 2400);
 
-  hemi = new THREE.HemisphereLight("#eef0ec", "#626762", 1.0);
+  hemi = new THREE.HemisphereLight("#f4f0e8", "#9d978d", .78);
   scene.add(hemi);
-  sun = new THREE.DirectionalLight("#f4f4ef", 1.35);
+  sun = new THREE.DirectionalLight("#fffaf0", .42);
   sun.position.set(260, 340, -150);
   scene.add(sun);
   scene.add(sun.target);
-  fill = new THREE.DirectionalLight("#bfc5c4", .5);   /* contra-lumină rece */
+  fill = new THREE.DirectionalLight("#d2cbc0", .16);
   fill.position.set(-220, 120, 240);
   scene.add(fill);
 
