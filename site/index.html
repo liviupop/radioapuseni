@@ -83,23 +83,23 @@
   --safe-b: env(safe-area-inset-bottom, 0px);
 }
 html[data-mode="night"] {
-  --color-sky-hi: #0b1112;
-  --color-sky-lo: #04080a;
-  --color-surface: #121a1c;
-  --color-line: #22302f;
-  --color-text: #dcd9cf;
-  --color-muted: #8b9c9a;
-  --color-accent: #b9c7d6;
-  --color-accent-bright: #e8eef5;
-  --color-accent-ink: #0a0f10;
-  --color-focus: #d7e2ee;
-  --color-danger: #e08a6c;
-  --ridge-far: rgba(220,217,207,.08);
-  --ridge-mid: rgba(220,217,207,.16);
-  --ridge-near: rgba(3,6,7,.92);
-  --scrim-top: rgba(11,17,18,.60);
-  --disc-glow: rgba(232,238,245,.30);
-  --shadow-md: 0 10px 30px rgba(0,0,0,.5);
+  --color-sky-hi: #293031;
+  --color-sky-lo: #171c1d;
+  --color-surface: #2a3031;
+  --color-line: #566260;
+  --color-text: #f2efe8;
+  --color-muted: #b7c1be;
+  --color-accent: #d1dae0;
+  --color-accent-bright: #f4f7f8;
+  --color-accent-ink: #151a1b;
+  --color-focus: #f4f7f8;
+  --color-danger: #ff9178;
+  --ridge-far: rgba(242,239,232,.14);
+  --ridge-mid: rgba(242,239,232,.24);
+  --ridge-near: rgba(19,23,23,.78);
+  --scrim-top: rgba(25,30,31,.38);
+  --disc-glow: rgba(244,247,248,.34);
+  --shadow-md: 0 10px 30px rgba(0,0,0,.36);
 }
 
 * { box-sizing: border-box; }
@@ -745,7 +745,7 @@ function applyClock() {
   const t = bucharest();
   const night = (t.h >= 22 || t.h < 8);
   document.documentElement.dataset.mode = night ? "night" : "day";
-  metaTheme.setAttribute("content", night ? "#0a0f10" : "#101913");
+  metaTheme.setAttribute("content", night ? "#1d2324" : "#101913");
   if (typeof terrainRetint === "function") terrainRetint(night);
   if (window.terrainRetintFallback) terrainRetintFallback();
 
@@ -1061,7 +1061,7 @@ function buildTerrain() {
    Benzile nete, nu degradeuri, dau registrul de ilustrație. */
 const BANDS = {
   day:   ["#b8b0a4", "#c4bcb0", "#cfc8bc", "#d9d3c8", "#e3ded4"],
-  night: ["#151615", "#20211f", "#2b2c29", "#383936", "#4a4b47"]
+  night: ["#343837", "#424644", "#505450", "#61655f", "#74776e"]
 };
 function meadowInfluence(x, z) {
   let strength = 0;
@@ -1091,8 +1091,8 @@ function terrainRetint(night) {
   if (!renderer || night === nightNow) return;
   nightNow = night;
   const band = (night ? BANDS.night : BANDS.day).map(h => new THREE.Color(h));
-  const shade = new THREE.Color(night ? "#090a09" : "#8f897f");
-  const meadowTone = new THREE.Color(night ? "#30312e" : "#d7d1c5");
+  const shade = new THREE.Color(night ? "#202422" : "#8f897f");
+  const meadowTone = new THREE.Color(night ? "#686c64" : "#d7d1c5");
   const pos = terrainGeo.attributes.position;
   const nor = terrainGeo.attributes.normal;
   const col = terrainGeo.attributes.color;
@@ -1109,25 +1109,25 @@ function terrainRetint(night) {
     col.setXYZ(i, _c.r, _c.g, _c.b);
   }
   col.needsUpdate = true;
-  sceneFog.color.set(night ? "#101210" : "#ddd7cc");
-  hemi.color.set(night ? "#303330" : "#f4f0e8");
-  hemi.groundColor.set(night ? "#090a09" : "#9d978d");
-  hemi.intensity = night ? .72 : .78;
-  sun.color.set(night ? "#d4d4cf" : "#fffaf0");
-  sun.intensity = night ? .48 : .42;
-  fill.color.set(night ? "#555853" : "#d2cbc0");
-  fill.intensity = night ? .2 : .16;
+  sceneFog.color.set(night ? "#272c2b" : "#ddd7cc");
+  hemi.color.set(night ? "#aeb9b6" : "#f4f0e8");
+  hemi.groundColor.set(night ? "#242826" : "#9d978d");
+  hemi.intensity = night ? .88 : .78;
+  sun.color.set(night ? "#f0eee7" : "#fffaf0");
+  sun.intensity = night ? .64 : .42;
+  fill.color.set(night ? "#a9b3af" : "#d2cbc0");
+  fill.intensity = night ? .3 : .16;
 
   if (hikerMaterials) {
     hikerMaterials.cloth.color.set(night ? "#e1e3df" : "#171918");
-    hikerMaterials.pack.color.set(night ? "#989e9a" : "#777b78");
+    hikerMaterials.pack.color.set(night ? "#b1b8b3" : "#777b78");
     hikerMaterials.skin.color.set(night ? "#e3e1da" : "#bbb9b2");
-    hikerMaterials.boot.color.set(night ? "#777d79" : "#202321");
+    hikerMaterials.boot.color.set(night ? "#8b928d" : "#202321");
   }
   if (landscapeMaterials) {
-    landscapeMaterials.trunk.color.set(night ? "#292a28" : "#b8b1a5");
-    landscapeMaterials.pine.color.set(night ? "#3a3b38" : "#d5d0c6");
-    landscapeMaterials.grass.color.set(night ? "#484945" : "#e1ddd4");
+    landscapeMaterials.trunk.color.set(night ? "#504b45" : "#b8b1a5");
+    landscapeMaterials.pine.color.set(night ? "#29312f" : "#d5d0c6");
+    landscapeMaterials.grass.color.set(night ? "#7b8077" : "#e1ddd4");
   }
   if (trailAlpha) {
     const trailTone = new THREE.Color(night ? "#f05a49" : "#cf3024");
