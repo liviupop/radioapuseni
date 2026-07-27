@@ -1431,7 +1431,7 @@ function buildHiker() {
   /* urma: un tub subțire, construit o dată. Nu îl dezvăluim prin
      drawRange, ci prin transparență per vârf: capul e plin, coada
      se stinge lin până la zero, ca un fir de fum în urma pașilor. */
-  const tube = new THREE.TubeGeometry(walk, TRAIL_RINGS, .16, TRAIL_SIDES, true);
+  const tube = new THREE.TubeGeometry(walk, TRAIL_RINGS, .32, TRAIL_SIDES, true);
   const rings = TRAIL_RINGS + 1, perRing = TRAIL_SIDES + 1;
   trailAlpha = new Float32Array(rings * perRing * 4);
   const rc = new THREE.Color("#cf3024");
