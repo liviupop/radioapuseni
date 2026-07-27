@@ -953,11 +953,27 @@ const WAY = [
   [70, 40], [30, -75], [-70, -140], [-190, -95], [-300, -140],
   [-370, -20], [-330, 210]
 ];
+const MEADOWS = [
+  { x: -205, z: 145, rx: 76, rz: 46 },
+  { x: 28, z: 30, rx: 72, rz: 54 },
+  { x: -205, z: -118, rx: 82, rz: 48 }
+];
+const FOREST_ZONES = [
+  { x: -292, z: 115, r: 92, seed: 11 },
+  { x: -18, z: -40, r: 104, seed: 29 },
+  { x: -285, z: -82, r: 88, seed: 47 },
+  { x: -92, z: 172, r: 66, seed: 71 }
+];
+const STREAM_CROSSINGS = [
+  { at: .045, reach: 125, width: 2.25 },
+  { at: .57, reach: 150, width: 1.7 }
+];
 let walk = null, walkLen = 1;
 
 let renderer, scene, camera, terrainGeo, terrainMesh;
 let hiker, hikerLeftLeg, hikerRightLeg, hikerLeftArm, hikerRightArm;
 let hikerLight, hikerMaterials, trail, hemi, sun, fill, sceneFog;
+let landscapeMaterials = null;
 let progress = 0, nightNow = null, lastFrame = 0;
 let trailAlpha = null;
 let zoomTarget = 1, zoomNow = 1, pinchDistance = 0;
@@ -965,11 +981,12 @@ const TRAIL_RINGS = 700;   /* inele de-a lungul potecii */
 const TRAIL_TAIL = 95;     /* cât rămâne vizibil în urmă */
 const TRAIL_SIDES = 4;
 const ZOOM_MIN = .46, ZOOM_MAX = 1.35;
-const SPEED = 4.2;
+const SPEED = 1.55;
 const _p = new THREE.Vector3(), _ahead = new THREE.Vector3(), _tan = new THREE.Vector3();
 const _right = new THREE.Vector3(), _c = new THREE.Color();
 const UP = new THREE.Vector3(0, 1, 0);
 const camGoal = new THREE.Vector3(), aimGoal = new THREE.Vector3(), aimNow = new THREE.Vector3();
+const followNow = new THREE.Vector3(), followTan = new THREE.Vector3(0, 0, 1);
 
 /* poteca proiectată pe teren, ca să nu intre în stâncă */
 function buildWalk() {
@@ -1005,11 +1022,25 @@ const BANDS = {
   day:   ["#555a57", "#707572", "#8b908c", "#a9ada8", "#d6d8d3"],
   night: ["#080b0c", "#111617", "#1b2223", "#2a3334", "#536061"]
 };
+function meadowInfluence(x, z) {
+  let strength = 0;
+  for (const meadow of MEADOWS) {
+    const dx = (x - meadow.x) / meadow.rx;
+    const dz = (z - meadow.z) / meadow.rz;
+    const d = Math.sqrt(dx * dx + dz * dz);
+    if (d < 1) {
+      const edge = 1 - d;
+      strength = Math.max(strength, edge * edge * (3 - 2 * edge));
+    }
+  }
+  return strength;
+}
 function terrainRetint(night) {
   if (!renderer || night === nightNow) return;
   nightNow = night;
   const band = (night ? BANDS.night : BANDS.day).map(h => new THREE.Color(h));
   const shade = new THREE.Color(night ? "#030505" : "#414643");
+  const meadowTone = new THREE.Color(night ? "#26352d" : "#87947a");
   const pos = terrainGeo.attributes.position;
   const nor = terrainGeo.attributes.normal;
   const col = terrainGeo.attributes.color;
@@ -1019,6 +1050,8 @@ function terrainRetint(night) {
     /* doar fețele foarte abrupte se închid: umbra rămâne grafică */
     const slope = 1 - Math.min(1, Math.max(0, nor.getY(i)));
     if (slope > .45) _c.lerp(shade, Math.min(.5, (slope - .45) * 1.1));
+    const meadow = slope < .34 ? meadowInfluence(pos.getX(i), pos.getZ(i)) : 0;
+    if (meadow > 0) _c.lerp(meadowTone, .16 + meadow * .36);
     col.setXYZ(i, _c.r, _c.g, _c.b);
   }
   col.needsUpdate = true;
@@ -1037,6 +1070,12 @@ function terrainRetint(night) {
     hikerMaterials.skin.color.set(night ? "#e3e1da" : "#bbb9b2");
     hikerMaterials.boot.color.set(night ? "#777d79" : "#202321");
   }
+  if (landscapeMaterials) {
+    landscapeMaterials.trunk.color.set(night ? "#242824" : "#4d4438");
+    landscapeMaterials.pine.color.set(night ? "#26352f" : "#44584b");
+    landscapeMaterials.water.color.set(night ? "#6e8790" : "#718d96");
+    landscapeMaterials.wood.color.set(night ? "#8c7963" : "#6f5034");
+  }
   if (trailAlpha) {
     const trailTone = new THREE.Color(night ? "#f05a49" : "#cf3024");
     for (let i = 0; i < trailAlpha.length; i += 4) {
@@ -1046,6 +1085,175 @@ function terrainRetint(night) {
     }
     trail.geometry.attributes.color.needsUpdate = true;
   }
+}
+
+function terrainSlope(x, z) {
+  const step = 3;
+  const dx = heightAt(x + step, z) - heightAt(x - step, z);
+  const dz = heightAt(x, z + step) - heightAt(x, z - step);
+  return Math.hypot(dx, dz) / (step * 2);
+}
+
+function distanceToWalk(x, z) {
+  let best = Infinity;
+  const probe = new THREE.Vector3();
+  for (let i = 0; i < 56; i++) {
+    walk.getPointAt(i / 56, probe);
+    best = Math.min(best, Math.hypot(x - probe.x, z - probe.z));
+  }
+  return best;
+}
+
+function buildForests() {
+  const targetCount = innerWidth < 820 ? 105 : 185;
+  const placements = [];
+  for (let i = 0; i < targetCount * 7 && placements.length < targetCount; i++) {
+    const zone = FOREST_ZONES[i % FOREST_ZONES.length];
+    const radial = Math.sqrt(hash2(zone.seed * 97 + i, i * 37 + 5)) * zone.r;
+    const angle = hash2(i * 61 + 7, zone.seed * 113 + i) * Math.PI * 2;
+    const x = zone.x + Math.cos(angle) * radial;
+    const z = zone.z + Math.sin(angle) * radial;
+    if (Math.abs(x) > T.size * .47 || Math.abs(z) > T.size * .47) continue;
+    if (distanceToWalk(x, z) < 10 || terrainSlope(x, z) > 1.15) continue;
+    const scale = .72 + hash2(i * 19 + 3, zone.seed * 43) * .72;
+    placements.push({ x, z, y: heightAt(x, z), scale, angle });
+  }
+
+  const trunkGeo = new THREE.CylinderGeometry(.34, .52, 2.4, 5);
+  const pineGeo = new THREE.ConeGeometry(2.35, 6.2, 7);
+  const trunks = new THREE.InstancedMesh(trunkGeo, landscapeMaterials.trunk, placements.length);
+  const pines = new THREE.InstancedMesh(pineGeo, landscapeMaterials.pine, placements.length);
+  const dummy = new THREE.Object3D();
+
+  placements.forEach((tree, i) => {
+    const trunkH = 2.15 * tree.scale;
+    dummy.position.set(tree.x, tree.y + trunkH / 2, tree.z);
+    dummy.rotation.set(0, tree.angle, 0);
+    dummy.scale.set(tree.scale, tree.scale, tree.scale);
+    dummy.updateMatrix();
+    trunks.setMatrixAt(i, dummy.matrix);
+
+    const crownH = 5.7 * tree.scale;
+    dummy.position.set(tree.x, tree.y + trunkH + crownH * .43, tree.z);
+    dummy.rotation.set(0, tree.angle, 0);
+    dummy.scale.set(tree.scale, tree.scale, tree.scale);
+    dummy.updateMatrix();
+    pines.setMatrixAt(i, dummy.matrix);
+  });
+
+  trunks.instanceMatrix.needsUpdate = true;
+  pines.instanceMatrix.needsUpdate = true;
+  trunks.frustumCulled = false;
+  pines.frustumCulled = false;
+  scene.add(trunks, pines);
+}
+
+function streamRibbon(points, width) {
+  const positions = new Float32Array(points.length * 2 * 3);
+  const indices = [];
+  for (let i = 0; i < points.length; i++) {
+    const prev = points[Math.max(0, i - 1)];
+    const next = points[Math.min(points.length - 1, i + 1)];
+    const dx = next.x - prev.x;
+    const dz = next.z - prev.z;
+    const len = Math.max(.001, Math.hypot(dx, dz));
+    const px = -dz / len, pz = dx / len;
+    const half = width * (.78 + .22 * Math.sin(i * .47)) / 2;
+    const leftX = points[i].x + px * half;
+    const leftZ = points[i].z + pz * half;
+    const rightX = points[i].x - px * half;
+    const rightZ = points[i].z - pz * half;
+    const base = i * 6;
+    positions[base] = leftX;
+    positions[base + 1] = heightAt(leftX, leftZ) + 1.35;
+    positions[base + 2] = leftZ;
+    positions[base + 3] = rightX;
+    positions[base + 4] = heightAt(rightX, rightZ) + 1.35;
+    positions[base + 5] = rightZ;
+    if (i < points.length - 1) {
+      const a = i * 2, b = a + 1, c = a + 2, d = a + 3;
+      indices.push(a, c, b, b, c, d);
+    }
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+  geo.setIndex(indices);
+  geo.computeVertexNormals();
+  return geo;
+}
+
+function buildLogBridge(center, tangent) {
+  const bridge = new THREE.Group();
+  const deckY = heightAt(center.x, center.z) + 2.05;
+  bridge.position.set(center.x, deckY, center.z);
+  bridge.rotation.y = Math.atan2(tangent.x, tangent.z);
+
+  const logGeo = new THREE.CylinderGeometry(.3, .34, 5.6, 6);
+  for (let i = -5; i <= 5; i++) {
+    const log = new THREE.Mesh(logGeo, landscapeMaterials.wood);
+    log.rotation.z = Math.PI / 2;
+    log.position.set(0, 0, i * .82);
+    bridge.add(log);
+  }
+
+  const beamGeo = new THREE.BoxGeometry(.34, .34, 9.4);
+  [-2.15, 2.15].forEach(x => {
+    const beam = new THREE.Mesh(beamGeo, landscapeMaterials.wood);
+    beam.position.set(x, -.42, 0);
+    bridge.add(beam);
+  });
+
+  const postGeo = new THREE.CylinderGeometry(.16, .2, 1.9, 6);
+  [-2.35, 2.35].forEach(x => {
+    [-3.5, 3.5].forEach(z => {
+      const post = new THREE.Mesh(postGeo, landscapeMaterials.wood);
+      post.position.set(x, .92, z);
+      bridge.add(post);
+    });
+  });
+
+  scene.add(bridge);
+}
+
+function buildStreamsAndBridges() {
+  STREAM_CROSSINGS.forEach((stream, streamIndex) => {
+    const center = walk.getPointAt(stream.at);
+    const tangent = walk.getTangentAt(stream.at);
+    tangent.y = 0;
+    tangent.normalize();
+    const across = new THREE.Vector3().crossVectors(tangent, UP).normalize();
+    const points = [];
+    const samples = innerWidth < 820 ? 54 : 72;
+    for (let i = 0; i < samples; i++) {
+      const offset = (i / (samples - 1) - .5) * stream.reach;
+      const meander = Math.sin(offset * .075 + streamIndex * 1.8) * 5
+        + Math.sin(offset * .031) * 2.5;
+      const x = center.x + across.x * offset + tangent.x * meander;
+      const z = center.z + across.z * offset + tangent.z * meander;
+      points.push(new THREE.Vector3(x, heightAt(x, z) + 1.35, z));
+    }
+    const water = new THREE.Mesh(
+      streamRibbon(points, stream.width),
+      landscapeMaterials.water
+    );
+    water.renderOrder = 1;
+    scene.add(water);
+    buildLogBridge(center, tangent);
+  });
+}
+
+function buildLandscapeDetails() {
+  landscapeMaterials = {
+    trunk: new THREE.MeshStandardMaterial({ color: "#4d4438", roughness: 1, flatShading: true }),
+    pine: new THREE.MeshStandardMaterial({ color: "#44584b", roughness: 1, flatShading: true }),
+    water: new THREE.MeshStandardMaterial({
+      color: "#718d96", roughness: .32, metalness: .05,
+      transparent: true, opacity: .76, depthWrite: false, side: THREE.DoubleSide
+    }),
+    wood: new THREE.MeshStandardMaterial({ color: "#6f5034", roughness: 1, flatShading: true })
+  };
+  buildForests();
+  buildStreamsAndBridges();
 }
 
 
@@ -1142,15 +1350,15 @@ function advance(dt, now) {
   _tan.y = 0; _tan.normalize();
   _right.crossVectors(_tan, UP).normalize();
 
-  const stride = Math.sin(now * .009);
+  const stride = Math.sin(now * .0048);
   hiker.position.copy(_p);
-  hiker.position.y += Math.abs(stride) * .09;
+  hiker.position.y += Math.abs(stride) * .055;
   hiker.rotation.y = Math.atan2(_tan.x, _tan.z);
-  hiker.rotation.z = Math.sin(now * .0045) * .025;
-  hikerLeftLeg.rotation.x = stride * .62;
-  hikerRightLeg.rotation.x = -stride * .62;
-  hikerLeftArm.rotation.x = -stride * .42;
-  hikerRightArm.rotation.x = stride * .42;
+  hiker.rotation.z = Math.sin(now * .0024) * .014;
+  hikerLeftLeg.rotation.x = stride * .5;
+  hikerRightLeg.rotation.x = -stride * .5;
+  hikerLeftArm.rotation.x = -stride * .34;
+  hikerRightArm.rotation.x = stride * .34;
   hikerLight.position.set(_p.x, _p.y + 3.2, _p.z);
 
   /* coada care se stinge */
@@ -1168,20 +1376,29 @@ function advance(dt, now) {
     trail.geometry.attributes.color.needsUpdate = true;
   }
 
+  /* Urmărire cu inerție lungă: drumețul se mișcă în peisaj,
+     dar camera respiră lent și nu copiază fiecare cotitură. */
+  const followEase = reducedMotion ? 1 : 1 - Math.exp(-dt * .42);
+  const directionEase = reducedMotion ? 1 : 1 - Math.exp(-dt * .28);
+  followNow.lerp(_p, followEase);
+  followTan.lerp(_tan, directionEase).normalize();
+  _right.crossVectors(followTan, UP).normalize();
+
   /* camera: în urmă, sus, puțin lateral. Unghi oblic, ca relieful
      să se vadă în adâncime, până la orizont. */
-  zoomNow += (zoomTarget - zoomNow) * (reducedMotion ? 1 : 1 - Math.exp(-dt * 4.5));
-  camGoal.copy(_p)
-    .addScaledVector(_tan, -205 * zoomNow)
+  zoomNow += (zoomTarget - zoomNow) * (reducedMotion ? 1 : 1 - Math.exp(-dt * 2.2));
+  camGoal.copy(followNow)
+    .addScaledVector(followTan, -205 * zoomNow)
     .addScaledVector(_right, -48 * zoomNow);
   camGoal.y = Math.max(
-    _p.y + 155 * zoomNow,
+    followNow.y + 155 * zoomNow,
     heightAt(camGoal.x, camGoal.z) + 95 * zoomNow
   );
-  camera.position.lerp(camGoal, 1 - Math.exp(-dt * 1.15));
+  camera.position.lerp(camGoal, reducedMotion ? 1 : 1 - Math.exp(-dt * .42));
 
-  /* privirea stă pe drumeț; netezimea vine din deplasarea camerei */
-  aimNow.copy(_p);
+  /* Privirea anticipează foarte puțin mersul și se așază lent. */
+  aimGoal.copy(followNow).addScaledVector(followTan, 5);
+  aimNow.lerp(aimGoal, reducedMotion ? 1 : 1 - Math.exp(-dt * .58));
   camera.lookAt(aimNow);
 
   /* apoi camera se abate cu unghiuri calculate din câmpul vizual,
@@ -1231,12 +1448,17 @@ function initScene() {
 
   buildWalk();
   buildTerrain();
+  buildLandscapeDetails();
   buildHiker();
   terrainRetint(document.documentElement.dataset.mode === "night");
 
   walk.getPointAt(0, _p);
+  followNow.copy(_p);
+  walk.getTangentAt(0, followTan);
+  followTan.y = 0;
+  followTan.normalize();
   camera.position.set(_p.x - 80, _p.y + 90, _p.z + 80);
-  aimNow.copy(_p);
+  aimNow.copy(followNow);
   camera.lookAt(aimNow);
 
   sizeScene();
@@ -1361,7 +1583,7 @@ window.addEventListener("keydown", (event) => {
   } else if (event.key === "-" || event.key === "_") {
     event.preventDefault();
     setLandscapeZoom(zoomTarget / .78, true);
-  } else if (event.key === "0") {
+  } else if (event.code === "Space" || event.key === "0") {
     event.preventDefault();
     setLandscapeZoom(1, true);
   }
