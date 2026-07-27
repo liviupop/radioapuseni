@@ -954,7 +954,7 @@ function buildWalk() {
   const N = 700, pts = [];
   for (let i = 0; i < N; i++) {
     const p = raw.getPointAt(i / N);
-    p.y = heightAt(p.x, p.z) + 1.8;
+    p.y = heightAt(p.x, p.z) + 2.6;
     pts.push(p);
   }
   walk = new THREE.CatmullRomCurve3(pts, true, "catmullrom", .2);
@@ -1008,8 +1008,8 @@ function terrainRetint(night) {
   fill.intensity = night ? .25 : .35;
 
   if (hikerMaterials) {
-    hikerMaterials.cloth.color.set(night ? "#d3d4cf" : "#303432");
-    hikerMaterials.pack.color.set(night ? "#858c88" : "#666a66");
+    hikerMaterials.cloth.color.set(night ? "#e1e3df" : "#171918");
+    hikerMaterials.pack.color.set(night ? "#989e9a" : "#777b78");
     hikerMaterials.skin.color.set(night ? "#e3e1da" : "#bbb9b2");
     hikerMaterials.boot.color.set(night ? "#777d79" : "#202321");
   }
@@ -1027,8 +1027,8 @@ function terrainRetint(night) {
 
 function buildHiker() {
   hikerMaterials = {
-    cloth: new THREE.MeshStandardMaterial({ color: "#303432", roughness: 1, flatShading: true }),
-    pack: new THREE.MeshStandardMaterial({ color: "#666a66", roughness: 1, flatShading: true }),
+    cloth: new THREE.MeshStandardMaterial({ color: "#171918", roughness: 1, flatShading: true }),
+    pack: new THREE.MeshStandardMaterial({ color: "#777b78", roughness: 1, flatShading: true }),
     skin: new THREE.MeshStandardMaterial({ color: "#bbb9b2", roughness: 1, flatShading: true }),
     boot: new THREE.MeshStandardMaterial({ color: "#202321", roughness: 1, flatShading: true })
   };
@@ -1111,7 +1111,7 @@ const FRAME = { nx: -0.44, ny: -0.42 };
 function advance(dt, now) {
   progress = (progress + (SPEED * dt) / walkLen) % 1;
   walk.getPointAt(progress, _p);
-  _p.y = heightAt(_p.x, _p.z) + 1.8;
+  _p.y = heightAt(_p.x, _p.z) + 3;
 
   /* direcția de mers, orizontală */
   walk.getTangentAt(progress, _tan);
