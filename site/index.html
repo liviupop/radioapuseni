@@ -954,7 +954,7 @@ function buildWalk() {
   const N = 700, pts = [];
   for (let i = 0; i < N; i++) {
     const p = raw.getPointAt(i / N);
-    p.y = heightAt(p.x, p.z) + .3;
+    p.y = heightAt(p.x, p.z) + 1.8;
     pts.push(p);
   }
   walk = new THREE.CatmullRomCurve3(pts, true, "catmullrom", .2);
@@ -1080,7 +1080,7 @@ function buildHiker() {
   hikerLeftArm = limb(-.72, 3.14, hikerMaterials.cloth, 1.22, .27);
   hikerRightArm = limb(.72, 3.14, hikerMaterials.cloth, 1.22, .27);
 
-  hiker.scale.setScalar(.78);
+  hiker.scale.setScalar(1);
   scene.add(hiker);
 
   /* O lumină foarte discretă păstrează silueta lizibilă fără
@@ -1111,7 +1111,7 @@ const FRAME = { nx: -0.44, ny: -0.42 };
 function advance(dt, now) {
   progress = (progress + (SPEED * dt) / walkLen) % 1;
   walk.getPointAt(progress, _p);
-  _p.y = heightAt(_p.x, _p.z) + .08;
+  _p.y = heightAt(_p.x, _p.z) + 1.8;
 
   /* direcția de mers, orizontală */
   walk.getTangentAt(progress, _tan);
