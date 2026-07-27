@@ -1133,7 +1133,7 @@ function distanceToWalk(x, z) {
 }
 
 function buildForests() {
-  const targetCount = innerWidth < 820 ? 220 : 360;
+  const targetCount = innerWidth < 820 ? 420 : 620;
   const placements = [];
   for (let i = 0; i < targetCount * 14 && placements.length < targetCount; i++) {
     const zone = FOREST_ZONES[i % FOREST_ZONES.length];
@@ -1188,11 +1188,12 @@ function buildForests() {
   lowerCrowns.frustumCulled = false;
   upperCrowns.frustumCulled = false;
   scene.add(trunks, lowerCrowns, upperCrowns);
+  canvas.dataset.forestTrees = String(placements.length);
 }
 
 function buildMeadowTufts() {
   const grassZones = MEADOWS.concat(CLEARINGS);
-  const targetCount = innerWidth < 820 ? 110 : 190;
+  const targetCount = innerWidth < 820 ? 170 : 260;
   const placements = [];
   for (let i = 0; i < targetCount * 5 && placements.length < targetCount; i++) {
     const meadow = grassZones[i % grassZones.length];
@@ -1205,7 +1206,7 @@ function buildMeadowTufts() {
     placements.push({ x, z, scale, angle });
   }
 
-  const tuftGeo = new THREE.ConeGeometry(.24, 1.35, 4);
+  const tuftGeo = new THREE.ConeGeometry(.3, 1.45, 4);
   const tufts = new THREE.InstancedMesh(tuftGeo, landscapeMaterials.grass, placements.length);
   const dummy = new THREE.Object3D();
   placements.forEach((tuft, i) => {
@@ -1218,6 +1219,8 @@ function buildMeadowTufts() {
   tufts.instanceMatrix.needsUpdate = true;
   tufts.frustumCulled = false;
   scene.add(tufts);
+  canvas.dataset.grassTufts = String(placements.length);
+  canvas.dataset.clearings = String(CLEARINGS.length);
 }
 
 function streamRibbon(points, width) {
