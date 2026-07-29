@@ -22,7 +22,7 @@
 
 <!-- PWA -->
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#101913" id="meta-theme">
+<meta name="theme-color" content="#1e2a1e" id="meta-theme">
 <link rel="icon" href="icons/favicon-radio-apuseni-16.png" sizes="16x16" type="image/png">
 <link rel="icon" href="icons/favicon-radio-apuseni-32.png" sizes="32x32" type="image/png">
 <link rel="icon" href="icons/radio-apuseni-192.png" sizes="192x192" type="image/png">
@@ -42,18 +42,28 @@
    întuneric lunar. În emisie, creasta din față urmează sunetul.
    ============================================================ */
 :root {
+  --color-forest: #1e2a1e;
+  --color-mountain: #4b5e3a;
+  --color-pasture: #7d8f63;
+  --color-hay: #a68b3d;
+  --color-gold: #d49a37;
+  --color-sunset: #e07a2e;
+  --color-shadow: #536273;
+  --color-wood: #8b806e;
+  --color-sky: #e6d9b8;
+
   /* ZIUA */
-  --color-sky-hi: #f3f0e8;
-  --color-sky-lo: #e5e0d6;
-  --color-surface: #f5f6ef;
-  --color-line: #cdd2c2;
-  --color-text: #1d2b23;
-  --color-muted: #56675b;
-  --color-accent: #8a5d10;
-  --color-accent-bright: #d9a441;
-  --color-accent-ink: #1c1206;
-  --color-focus: #6e4a0c;
-  --color-danger: #b3391f;
+  --color-sky-hi: var(--color-sky);
+  --color-sky-lo: var(--color-hay);
+  --color-surface: var(--color-sky);
+  --color-line: var(--color-wood);
+  --color-text: var(--color-forest);
+  --color-muted: var(--color-shadow);
+  --color-accent: var(--color-hay);
+  --color-accent-bright: var(--color-gold);
+  --color-accent-ink: var(--color-forest);
+  --color-focus: var(--color-sunset);
+  --color-danger: var(--color-sunset);
   --ridge-far: rgba(121,116,106,.14);
   --ridge-mid: rgba(121,116,106,.30);
   --ridge-near: rgba(91,87,79,.82);
@@ -83,17 +93,17 @@
   --safe-b: env(safe-area-inset-bottom, 0px);
 }
 html[data-mode="night"] {
-  --color-sky-hi: #293031;
-  --color-sky-lo: #171c1d;
-  --color-surface: #2a3031;
-  --color-line: #566260;
-  --color-text: #f2efe8;
-  --color-muted: #b7c1be;
-  --color-accent: #d1dae0;
-  --color-accent-bright: #f4f7f8;
-  --color-accent-ink: #151a1b;
-  --color-focus: #f4f7f8;
-  --color-danger: #ff9178;
+  --color-sky-hi: #111a27;
+  --color-sky-lo: #07111f;
+  --color-surface: var(--color-forest);
+  --color-line: var(--color-mountain);
+  --color-text: var(--color-sky);
+  --color-muted: var(--color-wood);
+  --color-accent: var(--color-gold);
+  --color-accent-bright: var(--color-sunset);
+  --color-accent-ink: var(--color-forest);
+  --color-focus: var(--color-sky);
+  --color-danger: var(--color-sunset);
   --ridge-far: rgba(242,239,232,.14);
   --ridge-mid: rgba(242,239,232,.24);
   --ridge-near: rgba(19,23,23,.78);
@@ -134,9 +144,36 @@ a:hover { color: var(--color-accent); }
 .stage {
   position: fixed; inset: 0;
   height: 100dvh;
-  touch-action: none;
+  overflow: hidden;
+  --stage-text: #fff9ea;
+  --stage-muted: rgba(255,249,234,.8);
 }
-#ridge { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+#ridge { display: none; }
+.landscape {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity var(--duration-slow) var(--ease-out);
+}
+.landscape img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center center;
+}
+html[data-mode="day"] .landscape--day,
+html[data-mode="night"] .landscape--night { opacity: 1; }
+.stage-veil {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(to bottom, rgba(18,25,19,.68) 0, rgba(18,25,19,.18) 30%, transparent 55%),
+    linear-gradient(to top, rgba(18,25,19,.72) 0, rgba(18,25,19,.12) 28%, transparent 48%);
+  pointer-events: none;
+}
 .scrim-top {
   position: absolute; inset: 0 0 auto 0; height: 38vh;
   background: linear-gradient(var(--scrim-top), transparent);
@@ -151,12 +188,13 @@ a:hover { color: var(--color-accent); }
   left: var(--pad);
   right: calc(var(--pad) + 7rem);
   pointer-events: none;
+  color: var(--stage-text);
 }
 .status .label {
   display: inline-flex; align-items: center; gap: .55em;
   font-size: var(--text-sm); font-weight: 500;
   letter-spacing: .04em;
-  color: var(--color-muted);
+  color: var(--stage-muted);
   margin: 0 0 var(--space-2);
 }
 .status .dot {
@@ -199,6 +237,10 @@ body.is-live .status .dot { opacity: 1; }
   top: calc(var(--pad) + var(--safe-t)); right: var(--pad);
   display: flex; gap: var(--space-2);
 }
+.corner-actions .icon-btn {
+  color: var(--color-gold);
+  background: rgba(30,42,30,.18);
+}
 .icon-btn {
   width: 44px; height: 44px;
   border: none; border-radius: var(--radius-lg);
@@ -221,7 +263,7 @@ body.is-live .status .dot { opacity: 1; }
   transform: translate(-50%, -50%);
   width: var(--size); height: var(--size);
   border-radius: var(--radius-lg); border: none; cursor: pointer;
-  background: radial-gradient(circle at 35% 30%, #f4d88f, var(--color-accent-bright) 72%);
+  background: radial-gradient(circle at 35% 30%, var(--color-sky), var(--color-gold) 72%);
   color: var(--color-accent-ink);
   display: inline-flex; align-items: center; justify-content: center;
   box-shadow: 0 0 70px 0 var(--disc-glow), var(--shadow-md);
@@ -245,7 +287,7 @@ body.is-live .status .dot { opacity: 1; }
   transform: scale(.96) rotate(17deg);
 }
 html[data-mode="night"] .disc {
-  background: radial-gradient(circle at 35% 30%, #ffffff, var(--color-accent-bright) 78%);
+  background: radial-gradient(circle at 35% 30%, var(--color-sky), var(--color-gold) 78%);
 }
 .disc:hover { transform: translate(-50%, -50%) scale(1.04); }
 .disc:active { transform: translate(-50%, -50%) scale(.97); }
@@ -308,21 +350,27 @@ body.is-ep.playing-now .disc .icon-pause { display: block; }
 .brand {
   display: flex; align-items: center; gap: var(--space-2);
   text-decoration: none;
+  color: var(--stage-text);
 }
-.brand-mark {
-  width: 38px; height: 38px; flex: none;
+.brand-logo {
+  width: clamp(8.5rem, 17vw, 11.5rem);
+  height: auto;
   display: block;
-  background: currentColor;
-  -webkit-mask: url("assets/logo-radio-apuseni.svg") center / contain no-repeat;
-  mask: url("assets/logo-radio-apuseni.svg") center / contain no-repeat;
-}
-.brand span {
-  font-family: var(--font-display); font-weight: 600;
-  font-size: var(--text-xs); letter-spacing: .14em; text-transform: uppercase;
-  line-height: 1.2;
+  filter: drop-shadow(0 3px 12px rgba(0,0,0,.28));
 }
 .bottombar nav { display: flex; gap: var(--space-1); }
-.bottombar .icon-btn { color: var(--color-text); }
+.bottombar .icon-btn {
+  background: rgba(30,42,30,.18);
+  text-shadow: 0 2px 10px rgba(0,0,0,.25);
+}
+.bottombar .icon-btn[data-sheet="sheet-program"] { color: var(--color-sky); }
+.bottombar .icon-btn[data-sheet="sheet-arhiva"] { color: var(--color-gold); }
+.bottombar .icon-btn[data-sheet="sheet-despre"] { color: var(--color-sunset); }
+.corner-actions .icon-btn:hover,
+.bottombar .icon-btn:hover {
+  color: var(--color-sky);
+  background: rgba(30,42,30,.48);
+}
 
 /* ============ FOILE (program / arhivă / despre) ============ */
 .sheet {
@@ -369,7 +417,10 @@ body.is-ep.playing-now .disc .icon-pause { display: block; }
 }
 .tl-seg { position: relative; border-left: 1px solid var(--color-line); }
 .tl-seg--morning { width: 16.7%; }
-.tl-seg--day { width: 33.3%; }
+.tl-seg--day {
+  width: 33.3%;
+  background: color-mix(in srgb, var(--color-pasture) 24%, var(--color-surface));
+}
 .tl-seg--evening { width: 8.3%; }
 .tl-seg--night { width: 41.7%; }
 .tl-seg:first-child { border-left: none; }
@@ -426,7 +477,9 @@ body.is-ep.playing-now .disc .icon-pause { display: block; }
   transition: background var(--duration-fast);
   vertical-align: middle;
 }
-.feed:hover td { background: var(--color-sky-hi); }
+.feed:hover td {
+  background: color-mix(in srgb, var(--color-pasture) 20%, var(--color-surface));
+}
 .feed-name h3 {
   margin: 0;
   font-family: var(--font-display);
@@ -548,6 +601,15 @@ li.playing.playing-now .ep-play .icon-pause { display: block; }
 <!-- ============ SCENA ============ -->
 <div class="stage">
   <canvas id="ridge" aria-hidden="true"></canvas>
+  <picture class="landscape landscape--day" aria-hidden="true">
+    <source media="(orientation: portrait)" srcset="assets/radio-apuseni-day-mobile.webp">
+    <img src="assets/radio-apuseni-day-desktop.webp" alt="" width="1920" height="1080" fetchpriority="high">
+  </picture>
+  <picture class="landscape landscape--night" aria-hidden="true">
+    <source media="(orientation: portrait)" srcset="assets/radio-apuseni-night-mobile.webp">
+    <img src="assets/radio-apuseni-night-desktop.webp" alt="" width="1920" height="1080">
+  </picture>
+  <div class="stage-veil" aria-hidden="true"></div>
   <div class="scrim-top" aria-hidden="true"></div>
 
   <div class="status">
@@ -560,7 +622,7 @@ li.playing.playing-now .ep-play .icon-pause { display: block; }
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v13m0 0-4-4m4 4 4-4M5 19h14"/></svg>
     </button>
   </div>
-  <p class="sr-only" id="zoom-status" aria-live="polite">Zoom peisaj 100%</p>
+  <p class="sr-only" id="zoom-status">Peisaj fotografic adaptat automat după ecran și ora României.</p>
 
   <button class="disc" id="play" type="button" aria-pressed="false" aria-label="Pornește Radio Apuseni">
     <svg class="icon-play" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15l13-7.5z"/></svg>
@@ -570,8 +632,7 @@ li.playing.playing-now .ep-play .icon-pause { display: block; }
 
   <div class="bottombar">
     <a class="brand" href="/" aria-label="Radio Apuseni — pagina principală">
-      <span class="brand-mark" aria-hidden="true"></span>
-      <span>Radio<br>Apuseni</span>
+      <img class="brand-logo" src="assets/logo-radio-apuseni-new-light.png" width="2053" height="1013" alt="Radio Apuseni">
     </a>
     <nav aria-label="Secțiuni">
       <button class="icon-btn" type="button" data-sheet="sheet-program" aria-label="Programul zilei" aria-haspopup="dialog">
@@ -743,9 +804,14 @@ function escapeHtml(s) { const t = document.createElement("span"); t.textContent
 /* ---------- ceasul: zi/noapte, ac, status implicit ---------- */
 function applyClock() {
   const t = bucharest();
-  const night = (t.h >= 22 || t.h < 8);
+  const themePreview = new URLSearchParams(location.search).get("theme");
+  const night = themePreview === "night"
+    ? true
+    : themePreview === "day"
+      ? false
+      : (t.h >= 22 || t.h < 8);
   document.documentElement.dataset.mode = night ? "night" : "day";
-  metaTheme.setAttribute("content", night ? "#1d2324" : "#101913");
+  metaTheme.setAttribute("content", night ? "#07111f" : "#1e2a1e");
   if (typeof terrainRetint === "function") terrainRetint(night);
   if (window.terrainRetintFallback) terrainRetintFallback();
 
@@ -1523,7 +1589,8 @@ function fallback2D() {
   window.terrainRetintFallback = draw;
 }
 
-initScene();
+/* Peisajul 3D este păstrat în sursă pentru o posibilă revenire,
+   dar nu mai este inițializat: scena folosește fotografiile zi/noapte. */
 
 /* ============================================================
    ZOOM PEISAJ
@@ -1577,7 +1644,7 @@ stage.addEventListener("touchend", (event) => {
 window.addEventListener("keydown", (event) => {
   const typing = event.target instanceof Element
     && event.target.matches("input, textarea, select, [contenteditable]");
-  if (openSheet || typing) return;
+  if (!renderer || openSheet || typing) return;
   if (event.key === "+" || event.key === "=") {
     event.preventDefault();
     setLandscapeZoom(zoomTarget * .78, true);
