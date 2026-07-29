@@ -262,9 +262,22 @@ body.is-live .status .dot { opacity: 1; }
   left: 50%; top: 44%;
   transform: translate(-50%, -50%);
   width: var(--size); height: var(--size);
-  border-radius: var(--radius-lg); border: none; cursor: pointer;
-  background: var(--color-gold);
-  color: var(--color-forest);
+  border-radius: 48% 52% 46% 54% / 53% 45% 55% 47%;
+  border: none; cursor: pointer;
+  background:
+    radial-gradient(circle at 24% 20%, var(--color-sky) 0 8%, transparent 38%),
+    radial-gradient(circle at 78% 26%, var(--color-sunset) 0 10%, transparent 44%),
+    linear-gradient(
+      135deg,
+      var(--color-gold) 0%,
+      var(--color-hay) 28%,
+      var(--color-pasture) 58%,
+      var(--color-shadow) 78%,
+      var(--color-gold) 100%
+    );
+  background-size: 180% 180%, 190% 190%, 260% 260%;
+  background-position: 0% 0%, 100% 0%, 0% 50%;
+  color: var(--color-mountain);
   display: inline-flex; align-items: center; justify-content: center;
   box-shadow: none;
   transition:
@@ -290,18 +303,15 @@ body.is-live .status .dot { opacity: 1; }
   transform: scale(.96) rotate(17deg);
 }
 html[data-mode="night"] .disc {
-  background: var(--color-gold);
-  color: var(--color-forest);
+  color: var(--color-mountain);
 }
 .disc:hover {
-  background: var(--color-sunset);
   transform: translate(-50%, -50%) scale(1.04);
 }
 .disc:active { transform: translate(-50%, -50%) scale(.97); }
 .disc:focus-visible { outline-offset: 8px; }
 .disc[disabled] { opacity: .55; cursor: wait; }
 body.is-live .disc, body.is-ep.playing-now .disc {
-  background: var(--color-sunset);
   box-shadow: none;
 }
 .disc svg { position: relative; z-index: 1; width: 30%; height: 30%; display: block; }
@@ -311,6 +321,13 @@ body.is-ep.playing-now .disc .icon-play { display: none; }
 body.is-live .disc .icon-pause,
 body.is-ep.playing-now .disc .icon-pause { display: block; }
 @media (prefers-reduced-motion: no-preference) {
+  .disc {
+    animation: liquid-player 18s ease-in-out infinite;
+  }
+  body.is-live .disc,
+  body.is-ep.playing-now .disc {
+    animation-duration: 13s;
+  }
   body.is-loading .disc { animation: breathe 1.4s ease-in-out infinite; }
   body.is-live .disc::before,
   body.is-ep.playing-now .disc::before {
@@ -319,6 +336,28 @@ body.is-ep.playing-now .disc .icon-pause { display: block; }
   body.is-live .disc::after,
   body.is-ep.playing-now .disc::after {
     animation: solar-wave-soft 3.8s 1.9s cubic-bezier(.22,.61,.36,1) infinite;
+  }
+}
+@keyframes liquid-player {
+  0% {
+    border-radius: 48% 52% 46% 54% / 53% 45% 55% 47%;
+    background-position: 0% 0%, 100% 0%, 0% 50%;
+  }
+  28% {
+    border-radius: 55% 45% 52% 48% / 44% 56% 46% 54%;
+    background-position: 78% 22%, 22% 76%, 48% 100%;
+  }
+  55% {
+    border-radius: 44% 56% 48% 52% / 57% 43% 54% 46%;
+    background-position: 100% 100%, 0% 100%, 100% 42%;
+  }
+  78% {
+    border-radius: 52% 48% 56% 44% / 46% 54% 43% 57%;
+    background-position: 34% 82%, 72% 18%, 55% 0%;
+  }
+  100% {
+    border-radius: 48% 52% 46% 54% / 53% 45% 55% 47%;
+    background-position: 0% 0%, 100% 0%, 0% 50%;
   }
 }
 @keyframes breathe { 50% { transform: translate(-50%, -50%) scale(1.05); } }
@@ -371,12 +410,13 @@ body.is-ep.playing-now .disc .icon-pause { display: block; }
   background: rgba(30,42,30,.18);
   text-shadow: 0 2px 10px rgba(30,42,30,.25);
 }
-.bottombar .icon-btn[data-sheet="sheet-program"] { color: var(--color-sky); }
-.bottombar .icon-btn[data-sheet="sheet-arhiva"] { color: var(--color-gold); }
-.bottombar .icon-btn[data-sheet="sheet-despre"] { color: var(--color-sunset); }
-.corner-actions .icon-btn:hover,
-.bottombar .icon-btn:hover {
+.bottombar .icon-btn[data-sheet] { color: var(--color-gold); }
+.corner-actions .icon-btn:hover {
   color: var(--color-sky);
+  background: rgba(30,42,30,.48);
+}
+.bottombar .icon-btn:hover {
+  color: var(--color-gold);
   background: rgba(30,42,30,.48);
 }
 
@@ -557,8 +597,11 @@ li.playing.playing-now .ep-play .icon-pause { display: block; }
   border-radius: var(--radius-md);
   background: var(--color-line);
 }
-.editorial-figure img { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; object-fit: cover; }
-.editorial-figure figcaption { padding: var(--space-2) var(--space-3); color: var(--color-muted); font-size: var(--text-xs); }
+.editorial-figure img { width: 100%; height: auto; aspect-ratio: 16 / 9; object-fit: cover; }
+.editorial-figure .editorial-bg { display: none; }
+html[data-mode="day"] .editorial-figure .editorial-bg--day,
+html[data-mode="night"] .editorial-figure .editorial-bg--night { display: block; }
+.editorial-figure figcaption { padding: var(--space-2) var(--space-3); color: var(--color-text); font-size: var(--text-xs); }
 .source-note { padding-top: var(--space-3); border-top: 1px solid var(--color-line); color: var(--color-muted); font-size: var(--text-xs); line-height: var(--leading-sm); }
 
 /* ---------- indiciu iOS ---------- */
@@ -724,8 +767,9 @@ li.playing.playing-now .ep-play .icon-pause { display: block; }
   </div>
   <div class="sheet-body">
     <figure class="editorial-figure">
-      <img src="assets/radio-apuseni-editorial.webp" width="1600" height="900" loading="lazy" alt="Ilustrație editorială cu munții, pădurile și gospodăriile risipite ale Apusenilor la răsărit">
-      <figcaption>Imagine editorială provizorie pentru etapa de lansare.</figcaption>
+      <img class="editorial-bg editorial-bg--day" src="assets/radio-apuseni-day-desktop.webp" width="1920" height="1080" loading="lazy" alt="Peisajul Radio Apuseni la apus">
+      <img class="editorial-bg editorial-bg--night" src="assets/radio-apuseni-night-desktop.webp" width="1920" height="1080" loading="lazy" alt="Peisajul Radio Apuseni sub cerul nopții">
+      <figcaption>Peisajul Radio Apuseni, adaptat orei României.</figcaption>
     </figure>
     <p class="lede">Radio Apuseni este infrastructura audio a Ecomuzeului Țării Moților, dezvoltată de Apuseni Eco Roots. Nu urmărim actualitatea de moment: fiecare interviu, fiecare sunet și fiecare poveste sunt gândite să rămână valoroase și peste zece sau douăzeci de ani.</p>
     <p class="lede">O singură întrebare decide ce intră în emisie: ajută acest conținut la o mai bună înțelegere a Munților Apuseni?</p>

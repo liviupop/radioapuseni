@@ -1,5 +1,40 @@
 # Radio Apuseni — Design QA
 
+## Fluid multigradient player and responsive About image — v33
+
+- Source visual truth: `output/radio-apuseni-palette-only-day.png`
+- Implementation state A: `output/radio-apuseni-liquid-button-a.png`
+- Implementation state B, five seconds later: `output/radio-apuseni-liquid-button-b.png`
+- Night state: `output/radio-apuseni-liquid-button-night.png`
+- Mobile state: `output/radio-apuseni-liquid-button-mobile.png`
+- About panel, day: `output/radio-apuseni-about-background-day-v33.png`
+- About panel, night: `output/radio-apuseni-about-background-night-v33.png`
+- Desktop viewport: 1280 × 720 CSS px and pixels, density 1
+- Mobile viewport: 390 × 844 CSS px and pixels, density 1
+- Full-view comparison: `output/comparison-liquid-button-full.png`
+- Focused motion comparison: `output/comparison-liquid-button-motion.png`
+
+The player now blends only supplied palette colors through two radial layers and one linear layer. It morphs its border radius and background positions over 18 seconds; while playing, the same calm motion shortens to 13 seconds. There is no shadow or glow, and `prefers-reduced-motion` keeps a static multigradient state.
+
+Additional requested changes:
+
+- Program, archive, and about icons all use the logo gold `#D49A37`, including hover.
+- The central play/pause mark uses mountain green `#4B5E3A`.
+- The About panel reuses the actual hero background: `radio-apuseni-day-desktop.webp` during the day and `radio-apuseni-night-desktop.webp` at night, each at 1920 × 1080.
+
+Required fidelity surfaces:
+
+- Fonts and typography: unchanged Montserrat hierarchy.
+- Spacing and layout: central player dimensions and position are preserved; no mobile overflow.
+- Colors and tokens: all gradient stops, icons, text, and surfaces remain inside the supplied palette.
+- Image quality: both supplied hero images load completely at their native 16:9 aspect ratio and switch with the page mode.
+- Copy and content: only the figure caption was updated to describe the time-aware background.
+- Interaction: play starts successfully, `aria-pressed` changes to true, the animation remains active, and no browser errors were observed.
+
+Findings: no actionable P0/P1/P2 differences. The focused three-state comparison confirms both the requested color transition and the slow organic shape change.
+
+Comparison history: the prior player was a flat gold circle. The new implementation introduces palette-only multigradient motion while preserving contrast, button size, hit target, and the earlier no-white constraint.
+
 ## Palette-only interface — v30
 
 - Source visual truth: `second version/fotoradioapuseniportraitlandscapepaletaculori/paleta_culori_radio_apuseni.png`
