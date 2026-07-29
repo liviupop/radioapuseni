@@ -1,5 +1,18 @@
 # Radio Apuseni — Design QA
 
+## New logo favicon set — v34
+
+- Source visual truth: `site/assets/logo-radio-apuseni-new-light.png`
+- Cropped symbol source: centered 760 × 760 px region containing the sun arc, mountains, forest, and waveform
+- Browser favicons: `site/icons/favicon-radio-apuseni-16.png`, `site/icons/favicon-radio-apuseni-32.png`
+- PWA icons: `site/icons/radio-apuseni-192.png`, `site/icons/radio-apuseni-512.png`
+- Maskable icon: `site/icons/radio-apuseni-maskable-512.png`
+- Apple touch icon: `site/icons/apple-touch-radio-apuseni.png`
+
+All generated icons use the supplied golden logo mark. The maskable and Apple variants place it on the exact forest color `#1E2A1E`. Favicon, manifest, and media-session references use the `v=34` cache key.
+
+Findings: no actionable P0/P1/P2 differences. Icon dimensions, transparency, browser references, and manifest JSON were verified.
+
 ## Fluid multigradient player and responsive About image — v33
 
 - Source visual truth: `output/radio-apuseni-palette-only-day.png`
