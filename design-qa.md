@@ -1,5 +1,28 @@
 # Radio Apuseni — Design QA
 
+## Palette-only interface — v30
+
+- Source visual truth: `second version/fotoradioapuseniportraitlandscapepaletaculori/paleta_culori_radio_apuseni.png`
+- Day implementation: `output/radio-apuseni-palette-only-day.png`
+- Night implementation: `output/radio-apuseni-palette-only-night.png`
+- Viewport: 1280 × 720 CSS px and pixels, density 1
+- States: day stage, night stage, and night program sheet open
+
+All visible interface colors were audited from computed styles. No white or white-adjacent RGB value remains. The visible set is restricted to supplied palette colors and palette-derived alpha overlays: bright sky `#E6D9B8`, forest `#1E2A1E`, mountain green `#4B5E3A`, golden light `#D49A37`, warm sunset `#E07A2E`, and aged wood `#8B806E`.
+
+Required fidelity surfaces:
+
+- Fonts and typography: Montserrat is unchanged; headline and UI text now use bright-sky cream instead of white.
+- Spacing and layout: unchanged.
+- Colors and tokens: all visible UI foregrounds, surfaces, borders, and overlays derive from the supplied palette.
+- Image quality: supplied day/night photography and logo remain unchanged.
+- Copy and content: unchanged.
+- Interaction: program sheet opened successfully during the color audit.
+
+Findings: no actionable P0/P1/P2 differences. A focused comparison was not needed because this iteration is verified through full-stage screenshots plus a computed-style audit of every visible element.
+
+Comparison history: the previous iteration still used white stage text and a few neutral/black overlay values. These were replaced with `#E6D9B8` and palette-derived forest, shadow, wood, and gold values. Post-fix audit returned `whiteish: []`.
+
 ## Flat player control — v29
 
 - Source visual truth: `output/radio-apuseni-day-desktop-palette-icons.png`
