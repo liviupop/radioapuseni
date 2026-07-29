@@ -9,7 +9,7 @@
 - Maskable icon: `site/icons/radio-apuseni-maskable-512.png`
 - Apple touch icon: `site/icons/apple-touch-radio-apuseni.png`
 
-All generated icons use the supplied golden logo mark. The maskable and Apple variants place it on the exact forest color `#1E2A1E`. Favicon, manifest, and media-session references use the `v=34` cache key.
+All generated icons use the supplied golden logo mark. The maskable and Apple variants place it on the exact forest color `#1E2A1E`. Favicon, manifest, and media-session references use the unique `v=new-logo-20260729` cache key.
 
 Findings: no actionable P0/P1/P2 differences. Icon dimensions, transparency, browser references, and manifest JSON were verified.
 
