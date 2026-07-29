@@ -1,5 +1,31 @@
 # Radio Apuseni — Design QA
 
+## Flat player control — v29
+
+- Source visual truth: `output/radio-apuseni-day-desktop-palette-icons.png`
+- Implementation: `output/radio-apuseni-flat-play-day.png`
+- Desktop viewport: 1280 × 720 CSS px, source and implementation 1280 × 720 px, density 1
+- Mobile implementation: `output/radio-apuseni-flat-play-mobile.png`, 390 × 844 CSS px and pixels, density 1
+- Night implementation: `output/radio-apuseni-flat-play-night.png`, 1280 × 720 CSS px and pixels, density 1
+- State: player stopped; active player state was also tested
+- Full-view comparison: `output/comparison-flat-play-full.png`
+- Focused control comparison: `output/comparison-flat-play-focused.png`
+
+The previous cream-to-gold gradient and glow made the control visually unrelated to the flatter logo and palette icons. The revised control uses a single `#D49A37` surface, a `#1E2A1E` play mark, no gradient, and no shadow. While playing, it changes to `#E07A2E` without adding elevation.
+
+Required fidelity surfaces:
+
+- Fonts and typography: unchanged Montserrat hierarchy.
+- Spacing and layout: control position and responsive 136 px/96 px sizing preserved.
+- Colors and tokens: exact supplied palette colors are used.
+- Image quality: supplied day/night photography and logo remain unchanged.
+- Copy and content: unchanged.
+- Interaction: stopped, hover, and playing states remain functional; the playing state keeps the previously requested restrained wave animation.
+
+Findings: no actionable P0/P1/P2 differences. No additional focused regions were needed because this iteration changes only the central player control.
+
+Comparison history: the first comparison identified the gradient and glow as inconsistent with the requested flat treatment. Both were removed; the post-fix focused comparison confirms a uniform fill and no shadow.
+
 ## Source of truth
 
 - Day landscape: `second version/fotoradioapuseniportraitlandscapepaletaculori/radio_apuseni_1920_1080.png`
