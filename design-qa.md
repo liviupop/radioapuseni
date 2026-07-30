@@ -1,5 +1,18 @@
 # Radio Apuseni — Design QA
 
+## Green daytime identity — v36
+
+- Source visual truth: `site/assets/logo-radio-apuseni-new-dark.png`
+- Desktop day: `output/radio-apuseni-green-day-v36.png`
+- Mobile day: `output/radio-apuseni-green-day-mobile-v36.png`
+- Desktop night regression: `output/radio-apuseni-gold-night-v36.png`
+- Desktop viewport: 1280 × 720 CSS px and pixels, density 1
+- Mobile viewport: 390 × 844 CSS px and pixels, density 1
+
+During the day, the dark-green logo, headline, status text, and three navigation icons use forest and mountain-green tokens. A bright-sky palette overlay maintains contrast over the photography. At night, the gold logo and controls remain unchanged.
+
+Findings: no actionable P0/P1/P2 differences. Day/night logo switching, icon colors, responsive layout, and browser console were verified.
+
 ## New logo favicon set — v34
 
 - Source visual truth: `site/assets/logo-radio-apuseni-new-light.png`

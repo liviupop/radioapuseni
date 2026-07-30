@@ -148,6 +148,10 @@ a:hover { color: var(--color-accent); }
   --stage-text: var(--color-sky);
   --stage-muted: var(--color-sky);
 }
+html[data-mode="day"] .stage {
+  --stage-text: var(--color-forest);
+  --stage-muted: var(--color-mountain);
+}
 #ridge { display: none; }
 .landscape {
   position: absolute;
@@ -173,6 +177,11 @@ html[data-mode="night"] .landscape--night { opacity: 1; }
     linear-gradient(to bottom, rgba(30,42,30,.68) 0, rgba(30,42,30,.18) 30%, transparent 55%),
     linear-gradient(to top, rgba(30,42,30,.72) 0, rgba(30,42,30,.12) 28%, transparent 48%);
   pointer-events: none;
+}
+html[data-mode="day"] .stage-veil {
+  background:
+    linear-gradient(to bottom, rgba(230,217,184,.70) 0, rgba(230,217,184,.16) 30%, transparent 55%),
+    linear-gradient(to top, rgba(230,217,184,.68) 0, rgba(230,217,184,.12) 28%, transparent 48%);
 }
 .scrim-top {
   position: absolute; inset: 0 0 auto 0; height: 38vh;
@@ -402,15 +411,24 @@ body.is-ep.playing-now .disc .icon-pause { display: block; }
 .brand-logo {
   width: clamp(8.5rem, 17vw, 11.5rem);
   height: auto;
-  display: block;
+  display: none;
   filter: drop-shadow(0 3px 12px rgba(30,42,30,.28));
 }
+html[data-mode="day"] .brand-logo--day {
+  display: block;
+  filter: drop-shadow(0 2px 9px rgba(230,217,184,.62));
+}
+html[data-mode="night"] .brand-logo--night { display: block; }
 .bottombar nav { display: flex; gap: var(--space-1); }
 .bottombar .icon-btn {
   background: rgba(30,42,30,.18);
   text-shadow: 0 2px 10px rgba(30,42,30,.25);
 }
 .bottombar .icon-btn[data-sheet] { color: var(--color-gold); }
+html[data-mode="day"] .bottombar .icon-btn[data-sheet] {
+  color: var(--color-forest);
+  background: rgba(230,217,184,.64);
+}
 .corner-actions .icon-btn:hover {
   color: var(--color-sky);
   background: rgba(30,42,30,.48);
@@ -418,6 +436,10 @@ body.is-ep.playing-now .disc .icon-pause { display: block; }
 .bottombar .icon-btn:hover {
   color: var(--color-gold);
   background: rgba(30,42,30,.48);
+}
+html[data-mode="day"] .bottombar .icon-btn:hover {
+  color: var(--color-forest);
+  background: rgba(230,217,184,.86);
 }
 
 /* ============ FOILE (program / arhivă / despre) ============ */
@@ -683,7 +705,8 @@ html[data-mode="night"] .editorial-figure .editorial-bg--night { display: block;
 
   <div class="bottombar">
     <a class="brand" href="/" aria-label="Radio Apuseni — pagina principală">
-      <img class="brand-logo" src="assets/logo-radio-apuseni-new-light.png" width="2053" height="1013" alt="Radio Apuseni">
+      <img class="brand-logo brand-logo--day" src="assets/logo-radio-apuseni-new-dark.png" width="2053" height="1013" alt="Radio Apuseni">
+      <img class="brand-logo brand-logo--night" src="assets/logo-radio-apuseni-new-light.png" width="2053" height="1013" alt="Radio Apuseni">
     </a>
     <nav aria-label="Secțiuni">
       <button class="icon-btn" type="button" data-sheet="sheet-program" aria-label="Programul zilei" aria-haspopup="dialog">

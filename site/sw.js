@@ -4,7 +4,7 @@
    podcast/episoadele audio — acelea sunt fie live, fie stau pe alt domeniu
    (serverul AzuraCast), și trebuie cerute mereu proaspăt din rețea. */
 
-const SHELL_CACHE = "radio-apuseni-shell-v35";
+const SHELL_CACHE = "radio-apuseni-shell-v36";
 
 const SHELL_ASSETS = [
   "./",
@@ -14,6 +14,7 @@ const SHELL_ASSETS = [
   "./manifest.json",
   "./vendor/three.min.js",
   "./assets/logo-radio-apuseni.svg",
+  "./assets/logo-radio-apuseni-new-dark.png",
   "./assets/logo-radio-apuseni-new-light.png",
   "./assets/radio-apuseni-day-desktop.webp",
   "./assets/radio-apuseni-day-mobile.webp",
